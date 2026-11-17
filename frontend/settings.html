@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#173B67" />
+    <meta
+      name="description"
+      content="Configure committee preferences, priority-city sourcing order, API integration status, and data maintenance for the NCR Internship Finder."
+    />
+    <title>Settings · NCR Tech Internship Finder</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/src/css/app.css" />
+    <link rel="stylesheet" href="/src/css/jobs.css" />
+    <link rel="stylesheet" href="/src/css/responsive.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <div class="app-shell">
+      <aside class="sidebar" id="app-sidebar" aria-label="Primary navigation"></aside>
+      <div class="sidebar-backdrop" id="sidebar-backdrop" hidden></div>
+      <div class="app-body">
+        <header class="topbar" id="app-topbar"></header>
+
+        <main class="page-content" id="main-content" tabindex="-1">
+          <div class="page-heading">
+            <div class="page-heading-copy">
+              <div class="eyebrow"><i data-lucide="settings"></i> Committee configuration</div>
+              <h1>Settings</h1>
+              <p class="page-subtitle">
+                Tune the sourcing workflow, confirm backend integrations, and review the runtime status of the
+                internship finder. Secrets stay in server environment variables.
+              </p>
+            </div>
+            <div class="page-actions">
+              <button class="btn btn-secondary" type="button" id="refresh-settings">
+                <i data-lucide="refresh-cw"></i> Refresh status
+              </button>
+              <a class="btn btn-primary" href="/discover.html">
+                <i data-lucide="search"></i> Discover jobs
+              </a>
+            </div>
+          </div>
+
+          <div id="settings-alert"></div>
+
+          <div class="settings-grid">
+            <div class="settings-col">
+              <section class="card settings-card">
+                <div class="card-header">
+                  <div class="settings-header-copy">
+                    <div class="settings-title"><i data-lucide="user-round"></i> Committee profile</div>
+                    <div class="settings-caption">Used for review attribution and report credits on this browser.</div>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <form class="settings-form" id="profile-form" novalidate>
+                    <div class="form-grid">
+                      <div class="form-group">
+                        <label class="form-label" for="settings-profile-name">Display name</label>
+                        <input class="input" id="settings-profile-name" name="profileName" type="text" maxlength="120" placeholder="e.g., Dr. Meera Sharma" />
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label" for="settings-role">Committee role</label>
+                        <select class="select" id="settings-role" name="role"></select>
+                      </div>
+                      <div class="form-group full">
+                        <label class="form-label" for="settings-reviewer">
+                          Reviewer name on verification records
+                          <span class="optional">Defaults to the display name</span>
+                        </label>
+                        <input class="input" id="settings-reviewer" name="reviewerName" type="text" maxlength="120" placeholder="e.g., Placement Committee" />
+                      </div>
+                    </div>
+                    <div class="settings-form-actions">
+                      <button class="btn btn-primary btn-sm" type="submit" id="save-profile">
+                        <i data-lucide="save"></i> Save profile
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </section>
+
+              <section class="card settings-card">
+                <div class="card-header">
+                  <div class="settings-header-copy">
+                    <div class="settings-title"><i data-lucide="map-pinned"></i> Priority city order</div>
+                    <div class="settings-caption">Discovery defaults and recommendations follow this order. Gurugram should stay first.</div>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <div class="priority-list" id="priority-list">
+                    <div class="loading-state"><span class="spinner"></span><span>Loading priority cities…</span></div>
+                  </div>
+                  <div class="settings-inline-actions">
+                    <span class="text-xs text-tertiary">Order is stored in this browser.</span>
+                    <button class="btn btn-sm btn-ghost" type="button" id="reset-priority">
+                      <i data-lucide="rotate-ccw"></i> Restore recommended order
+                    </button>
+                  </div>
+                </div>
+              </section>
+
+              <section class="card settings-card">
+                <div class="card-header">
+                  <div class="settings-header-copy">
+                    <div class="settings-title"><i data-lucide="target"></i> Category focus</div>
+                    <div class="settings-caption">Highlight the categories your committee is actively shortlisting. Targets remain fixed.</div>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <div class="category-preference-grid" id="category-focus-grid">
+                    <div class="loading-state"><span class="spinner"></span><span>Loading categories…</span></div>
+                  </div>
+                  <div class="settings-inline-actions">
+                    <span class="text-xs text-tertiary" id="category-focus-caption">—</span>
+                    <button class="btn btn-sm btn-ghost" type="button" id="reset-categories">
+                      <i data-lucide="rotate-ccw"></i> Select all
+                    </button>
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            <div class="settings-col">
+              <section class="card settings-card">
+                <div class="card-header">
+                  <div class="settings-header-copy">
+                    <div class="settings-title"><i data-lucide="plug"></i> API integrations</div>
+                    <div class="settings-caption">Server-side configuration detected at runtime.</div>
+                  </div>
+                  <button class="btn btn-icon btn-ghost btn-sm" type="button" id="refresh-integrations" aria-label="Refresh integrations">
+                    <i data-lucide="refresh-cw"></i>
+                  </button>
+                </div>
+                <div class="card-body">
+                  <div class="integration-list" id="integrations-list">
+                    <div class="loading-state"><span class="spinner"></span><span>Checking integrations…</span></div>
+                  </div>
+                  <div class="settings-note mt-12">
+                    <strong>Keys stay server-side.</strong> Add keys to <code>backend/.env</code> and restart the API. The browser only reads readiness flags.
+                  </div>
+                </div>
+              </section>
+
+              <section class="card settings-card">
+                <div class="card-header">
+                  <div class="settings-header-copy">
+                    <div class="settings-title"><i data-lucide="server"></i> System status</div>
+                    <div class="settings-caption" id="system-status-caption">Loading runtime details…</div>
+                  </div>
+                  <button class="btn btn-icon btn-ghost btn-sm" type="button" id="refresh-system-status" aria-label="Refresh system status">
+                    <i data-lucide="refresh-cw"></i>
+                  </button>
+                </div>
+                <div class="card-body">
+                  <div class="status-grid" id="system-status-grid">
+                    <div class="loading-state"><span class="spinner"></span><span>Loading system status…</span></div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="card settings-card">
+                <div class="card-header">
+                  <div class="settings-header-copy">
+                    <div class="settings-title"><i data-lucide="database-zap"></i> Data maintenance</div>
+                    <div class="settings-caption">Safe, repeatable jobs for keeping the directory consistent.</div>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <div class="status-grid" id="data-summary">
+                    <div class="status-item"><span>Directory records</span><strong>—</strong></div>
+                    <div class="status-item"><span>Analyses stored</span><strong>—</strong></div>
+                    <div class="status-item"><span>Searches (24h)</span><strong>—</strong></div>
+                    <div class="status-item"><span>Last discovery</span><strong>—</strong></div>
+                  </div>
+                  <div class="maintenance-actions mt-12">
+                    <button class="btn btn-sm btn-secondary" type="button" id="reindex-companies-settings">
+                      <i data-lucide="building-2"></i> Rebuild company index
+                    </button>
+                    <button class="btn btn-sm btn-secondary" type="button" id="analyze-pending">
+                      <i data-lucide="sparkles"></i> Analyze 3 pending roles
+                    </button>
+                  </div>
+                  <div class="settings-note mt-12" id="maintenance-note">
+                    No maintenance action is running.
+                  </div>
+                </div>
+              </section>
+
+              <section class="card settings-card">
+                <div class="card-header">
+                  <div class="settings-header-copy">
+                    <div class="settings-title"><i data-lucide="shield-check"></i> Security &amp; about</div>
+                    <div class="settings-caption">How this workspace protects committee data.</div>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <div class="security-item"><i data-lucide="check-circle-big"></i><span>Job provider and Gemini API keys are read only by the backend and never sent to the browser.</span></div>
+                  <div class="security-item"><i data-lucide="check-circle-big"></i><span>Application links are validated against a server-side SSRF guard before link checks run.</span></div>
+                  <div class="security-item"><i data-lucide="check-circle-big"></i><span>Discovery is rate limited to 40 searches per rolling 24 hours; login attempts are also throttled.</span></div>
+                  <div class="security-item"><i data-lucide="check-circle-big"></i><span>Only committee-verified, active opportunities count toward the 20-role target.</span></div>
+                  <div class="divider mt-16"></div>
+                  <div class="about-version"><span>Application</span><strong>NCR Tech Internship Finder</strong></div>
+                  <div class="about-version"><span>Version</span><strong>1.0.0</strong></div>
+                  <div class="about-version"><span>Frontend</span><strong>HTML · CSS · Vanilla JS · jQuery</strong></div>
+                  <div class="about-version"><span>Backend</span><strong>Node.js · Express · Supabase</strong></div>
+                  <div class="about-version"><span>Auth mode</span><strong id="security-auth-mode">—</strong></div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </main>
+
+        <footer class="page-footer">
+          <div class="page-footer-inner">
+            <span>© 2026 NCR Tech Internship Finder · Placement Committee</span>
+            <span>Verified active: <strong id="footer-verified-count">0</strong> / 20 target</span>
+          </div>
+        </footer>
+      </div>
+    </div>
+
+    <div class="toast-stack" id="toast-stack" aria-live="polite" aria-atomic="false"></div>
+    <div id="drawer-root"></div>
+    <div id="modal-root"></div>
+    <div id="auth-root"></div>
+
+    <script type="module" src="/src/js/pages/settings.js"></script>
+  </body>
+</html>

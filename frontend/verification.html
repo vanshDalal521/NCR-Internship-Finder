@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#173B67" />
+    <meta
+      name="description"
+      content="Human verification queue for NCR internship opportunities. Review the original posting, check the application link, and record every verification decision."
+    />
+    <title>Verification Centre · NCR Tech Internship Finder</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/src/css/app.css" />
+    <link rel="stylesheet" href="/src/css/jobs.css" />
+    <link rel="stylesheet" href="/src/css/responsive.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <div class="app-shell">
+      <aside class="sidebar" id="app-sidebar" aria-label="Primary navigation"></aside>
+      <div class="sidebar-backdrop" id="sidebar-backdrop" hidden></div>
+      <div class="app-body">
+        <header class="topbar" id="app-topbar"></header>
+
+        <main class="page-content verification-page" id="main-content" tabindex="-1">
+          <div class="page-heading">
+            <div class="page-heading-copy">
+              <div class="eyebrow"><i data-lucide="shield-check"></i> Human verification gate</div>
+              <h1>Verification Centre</h1>
+              <p class="page-subtitle">
+                Every API and manual record stops here. Open the original posting, check the application link,
+                and record a review decision. Only verified active roles count toward the committee's target.
+              </p>
+            </div>
+            <div class="page-actions">
+              <button class="btn btn-secondary" type="button" id="verification-manual-button">
+                <i data-lucide="plus"></i> Add manually
+              </button>
+              <button class="btn btn-primary" type="button" id="refresh-verification">
+                <i data-lucide="refresh-cw"></i> Refresh queue
+              </button>
+            </div>
+          </div>
+
+          <div id="verification-alert"></div>
+
+          <div class="verification-stats" id="verification-stats" aria-live="polite">
+            <div class="verification-stat">
+              <div class="verification-stat-icon amber"><i data-lucide="clock"></i></div>
+              <div>
+                <div class="verification-stat-value" data-stat="pending">—</div>
+                <div class="verification-stat-label">Pending review</div>
+              </div>
+            </div>
+            <div class="verification-stat">
+              <div class="verification-stat-icon blue"><i data-lucide="circle-alert"></i></div>
+              <div>
+                <div class="verification-stat-value" data-stat="needsReview">—</div>
+                <div class="verification-stat-label">Needs review</div>
+              </div>
+            </div>
+            <div class="verification-stat">
+              <div class="verification-stat-icon green"><i data-lucide="shield-check"></i></div>
+              <div>
+                <div class="verification-stat-value" data-stat="verifiedActive">—</div>
+                <div class="verification-stat-label">Verified active</div>
+              </div>
+            </div>
+            <div class="verification-stat">
+              <div class="verification-stat-icon red"><i data-lucide="circle-slash"></i></div>
+              <div>
+                <div class="verification-stat-value" data-stat="inactive">—</div>
+                <div class="verification-stat-label">Expired or rejected</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="verification-layout">
+            <section class="card queue-panel" aria-label="Review queue">
+              <div class="queue-panel-head">
+                <div>
+                  <div class="queue-panel-title">Review queue</div>
+                  <div class="queue-panel-caption">Oldest records appear first. Select a role to review it.</div>
+                </div>
+                <span class="badge badge-neutral" id="queue-total">—</span>
+              </div>
+              <div class="queue-tabs" id="queue-tabs" role="tablist" aria-label="Filter review queue">
+                <button class="queue-tab active" type="button" role="tab" data-view="all" aria-selected="true">
+                  All <span class="count-pill" data-queue-count="all">0</span>
+                </button>
+                <button class="queue-tab" type="button" role="tab" data-view="pending" aria-selected="false">
+                  Pending <span class="count-pill" data-queue-count="pending">0</span>
+                </button>
+                <button class="queue-tab" type="button" role="tab" data-view="needs_review" aria-selected="false">
+                  Needs review <span class="count-pill" data-queue-count="needs_review">0</span>
+                </button>
+              </div>
+              <div class="queue-list" id="verification-queue">
+                <div class="loading-state"><span class="spinner"></span><span>Loading review queue…</span></div>
+              </div>
+              <div class="queue-panel-footer">
+                <i data-lucide="lock"></i> Verification decisions are recorded with your reviewer name and a timestamp.
+              </div>
+            </section>
+
+            <section class="card review-panel" id="review-panel" aria-label="Opportunity review" aria-live="polite">
+              <div class="review-empty">
+                <div class="empty-icon"><i data-lucide="shield-check"></i></div>
+                <div class="empty-title">Select an opportunity to review</div>
+                <p class="empty-text">Choose a record from the queue to inspect its source posting and record a decision.</p>
+              </div>
+            </section>
+          </div>
+
+          <div class="audit-section">
+            <div class="card table-card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title"><i data-lucide="history"></i> Verification audit trail</div>
+                  <div class="card-description">Most recent decisions recorded by the committee</div>
+                </div>
+                <div class="header-actions">
+                  <span class="badge badge-neutral" id="audit-count">—</span>
+                  <button class="btn btn-sm btn-ghost" type="button" id="refresh-audit">
+                    <i data-lucide="refresh-cw"></i> Refresh
+                  </button>
+                </div>
+              </div>
+              <div class="table-wrap">
+                <table class="data-table audit-table">
+                  <thead>
+                    <tr>
+                      <th>Reviewed</th>
+                      <th>Opportunity</th>
+                      <th>Previous</th>
+                      <th>Decision</th>
+                      <th>Reviewer</th>
+                      <th>Link status</th>
+                      <th>Notes</th>
+                    </tr>
+                  </thead>
+                  <tbody id="audit-body">
+                    <tr class="skeleton-row">
+                      <td colspan="7"><div class="loading-state"><span class="spinner"></span><span>Loading audit trail…</span></div></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </main>
+
+        <footer class="page-footer">
+          <div class="page-footer-inner">
+            <span>© 2026 NCR Tech Internship Finder · Placement Committee</span>
+            <span>Verified active: <strong id="footer-verified-count">0</strong> / 20 target</span>
+          </div>
+        </footer>
+      </div>
+    </div>
+
+    <div class="toast-stack" id="toast-stack" aria-live="polite" aria-atomic="false"></div>
+    <div id="drawer-root"></div>
+    <div id="modal-root"></div>
+    <div id="auth-root"></div>
+
+    <script type="module" src="/src/js/pages/verification.js"></script>
+  </body>
+</html>

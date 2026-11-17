@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#173B67" />
+    <meta
+      name="description"
+      content="Company directory for the NCR internship pipeline. Track employers, verified opportunities, locations, and committee contacts."
+    />
+    <title>Companies · NCR Tech Internship Finder</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/src/css/app.css" />
+    <link rel="stylesheet" href="/src/css/jobs.css" />
+    <link rel="stylesheet" href="/src/css/responsive.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <div class="app-shell">
+      <aside class="sidebar" id="app-sidebar" aria-label="Primary navigation"></aside>
+      <div class="sidebar-backdrop" id="sidebar-backdrop" hidden></div>
+      <div class="app-body">
+        <header class="topbar" id="app-topbar"></header>
+
+        <main class="page-content" id="main-content" tabindex="-1">
+          <div class="page-heading">
+            <div class="page-heading-copy">
+              <div class="eyebrow"><i data-lucide="building-2"></i> Employer intelligence</div>
+              <h1>Companies</h1>
+              <p class="page-subtitle">
+                Every employer linked to the internship directory. Review hiring activity, priority-city
+                coverage, verified roles, and committee contacts in one place.
+              </p>
+            </div>
+            <div class="page-actions">
+              <button class="btn btn-secondary" type="button" id="reindex-companies">
+                <i data-lucide="database-zap"></i> Rebuild index
+              </button>
+              <a class="btn btn-primary" href="/opportunities.html">
+                <i data-lucide="briefcase-business"></i> All opportunities
+              </a>
+            </div>
+          </div>
+
+          <div class="mini-stat-row" id="companies-summary">
+            <div class="mini-stat">
+              <div class="mini-stat-label">Companies in directory</div>
+              <div class="mini-stat-value navy" data-company-stat="companies">—</div>
+            </div>
+            <div class="mini-stat">
+              <div class="mini-stat-label">With verified active roles</div>
+              <div class="mini-stat-value green" data-company-stat="verified">—</div>
+            </div>
+            <div class="mini-stat">
+              <div class="mini-stat-label">Active filters</div>
+              <div class="mini-stat-value amber" data-company-stat="filters">—</div>
+            </div>
+            <div class="mini-stat">
+              <div class="mini-stat-label">Showing</div>
+              <div class="mini-stat-value" data-company-stat="showing">—</div>
+            </div>
+          </div>
+
+          <div class="companies-toolbar">
+            <div class="companies-toolbar-left">
+              <div class="input-wrap">
+                <i data-lucide="search"></i>
+                <input
+                  class="input"
+                  id="company-search"
+                  type="search"
+                  maxlength="160"
+                  placeholder="Search company, industry, city, or category"
+                  autocomplete="off"
+                  aria-label="Search companies"
+                />
+              </div>
+              <select class="select" id="company-city" aria-label="Filter by priority city" style="max-width: 180px">
+                <option value="">All priority cities</option>
+              </select>
+            </div>
+            <div class="companies-toolbar-right">
+              <button class="btn btn-sm btn-ghost" type="button" id="clear-company-filters">
+                <i data-lucide="rotate-ccw"></i> Reset
+              </button>
+              <button class="btn btn-sm btn-secondary" type="button" id="refresh-companies">
+                <i data-lucide="refresh-cw"></i> Refresh
+              </button>
+            </div>
+          </div>
+
+          <div id="companies-alert"></div>
+
+          <div class="card table-card">
+            <div class="table-toolbar">
+              <div class="table-toolbar-copy" id="companies-caption">
+                <i data-lucide="building-2"></i> Company directory
+              </div>
+              <div class="header-actions">
+                <span class="text-xs text-tertiary" id="companies-result-meta"></span>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Company</th>
+                    <th>Industry</th>
+                    <th>City coverage</th>
+                    <th>Opportunities</th>
+                    <th>Contact</th>
+                    <th>Last activity</th>
+                    <th aria-label="Actions"></th>
+                  </tr>
+                </thead>
+                <tbody id="companies-body">
+                  <tr class="skeleton-row">
+                    <td colspan="7"><div class="loading-state"><span class="spinner"></span><span>Loading companies…</span></div></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div id="companies-pagination"></div>
+          </div>
+        </main>
+
+        <footer class="page-footer">
+          <div class="page-footer-inner">
+            <span>© 2026 NCR Tech Internship Finder · Placement Committee</span>
+            <span>Verified active: <strong id="footer-verified-count">0</strong> / 20 target</span>
+          </div>
+        </footer>
+      </div>
+    </div>
+
+    <div class="toast-stack" id="toast-stack" aria-live="polite" aria-atomic="false"></div>
+    <div id="drawer-root"></div>
+    <div id="modal-root"></div>
+    <div id="auth-root"></div>
+
+    <script type="module" src="/src/js/pages/companies.js"></script>
+  </body>
+</html>

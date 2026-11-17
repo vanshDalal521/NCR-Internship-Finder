@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#173B67" />
+    <meta
+      name="description"
+      content="Generate committee-ready internship reports as Excel workbooks or PDF summaries, and keep a history of every report produced."
+    />
+    <title>Reports · NCR Tech Internship Finder</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/src/css/app.css" />
+    <link rel="stylesheet" href="/src/css/jobs.css" />
+    <link rel="stylesheet" href="/src/css/responsive.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <div class="app-shell">
+      <aside class="sidebar" id="app-sidebar" aria-label="Primary navigation"></aside>
+      <div class="sidebar-backdrop" id="sidebar-backdrop" hidden></div>
+      <div class="app-body">
+        <header class="topbar" id="app-topbar"></header>
+
+        <main class="page-content" id="main-content" tabindex="-1">
+          <div class="page-heading">
+            <div class="page-heading-copy">
+              <div class="eyebrow"><i data-lucide="file-bar-chart"></i> Committee reporting</div>
+              <h1>Reports</h1>
+              <p class="page-subtitle">
+                Produce placement-committee-ready workbooks and PDF summaries. Reports use committee-verified
+                data only, and every generated file is recorded in the report history.
+              </p>
+            </div>
+            <div class="page-actions">
+              <button class="btn btn-secondary" type="button" id="refresh-report-preview">
+                <i data-lucide="refresh-cw"></i> Refresh data
+              </button>
+              <a class="btn btn-primary" href="/opportunities.html">
+                <i data-lucide="briefcase-business"></i> Open directory
+              </a>
+            </div>
+          </div>
+
+          <div id="reports-alert"></div>
+
+          <div class="reports-layout">
+            <section class="card report-builder">
+              <div class="card-header">
+                <div>
+                  <div class="card-title"><i data-lucide="sliders-horizontal"></i> Report builder</div>
+                  <div class="card-description">Choose scope, format, and the data to include</div>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="report-ready">
+                  <div class="report-ready-icon"><i data-lucide="shield-check"></i></div>
+                  <div>
+                    <div class="report-ready-value" id="report-ready-count">—</div>
+                    <div class="report-ready-label">Verified active opportunities ready</div>
+                  </div>
+                  <div class="report-ready-progress">
+                    <span>Target progress</span>
+                    <strong id="report-ready-progress">— / 20</strong>
+                  </div>
+                </div>
+
+                <form id="report-form" novalidate>
+                  <div class="report-field">
+                    <div class="report-section-label"><i data-lucide="list-checks"></i> Report type</div>
+                    <div class="form-group">
+                      <select class="select" id="report-type" name="reportType">
+                        <option value="verified_opportunities">Verified opportunities</option>
+                        <option value="full_directory">Full directory (all statuses)</option>
+                      </select>
+                      <div class="form-help" id="report-type-help">
+                        Includes only opportunities the committee has verified as active.
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="report-field">
+                    <div class="report-section-label"><i data-lucide="file-down"></i> File format</div>
+                    <div class="format-options" id="report-format-options">
+                      <label class="format-option selected xlsx">
+                        <input type="radio" name="format" value="xlsx" checked />
+                        <span class="format-icon"><i data-lucide="file-spreadsheet"></i></span>
+                        <span class="format-name">Excel workbook</span>
+                        <span class="format-desc">Opportunities sheet plus a summary sheet</span>
+                      </label>
+                      <label class="format-option pdf">
+                        <input type="radio" name="format" value="pdf" />
+                        <span class="format-icon"><i data-lucide="file-text"></i></span>
+                        <span class="format-name">PDF summary</span>
+                        <span class="format-desc">Formatted cover summary and opportunity table</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div class="report-field">
+                    <div class="report-section-label"><i data-lucide="filter"></i> Category scope</div>
+                    <div class="report-option-list" id="report-category-options"></div>
+                    <div class="form-help">Unchecked categories are excluded from the file and recorded in the history.</div>
+                  </div>
+
+                  <div class="report-field">
+                    <div class="report-section-label"><i data-lucide="list-checks"></i> Include</div>
+                    <div class="report-option-list">
+                      <label class="check check-sm">
+                        <input type="checkbox" id="report-include-links" checked />
+                        <span class="check-copy">Application URLs</span>
+                      </label>
+                      <label class="check check-sm">
+                        <input type="checkbox" id="report-include-source" checked />
+                        <span class="check-copy">Source and verification details</span>
+                      </label>
+                      <label class="check check-sm">
+                        <input type="checkbox" id="report-include-eligibility" />
+                        <span class="check-copy">Eligibility and skills</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div class="report-actions">
+                    <button class="btn btn-primary" type="submit" id="generate-report">
+                      <i data-lucide="download"></i> Generate &amp; download report
+                    </button>
+                  </div>
+                  <div class="report-note">
+                    <i data-lucide="lock"></i>
+                    Report files are generated in your browser from committee data. Provider API keys are never sent to the frontend.
+                  </div>
+                </form>
+              </div>
+            </section>
+
+            <section class="card">
+              <div class="preview-summary">
+                <div class="preview-summary-left">
+                  <div class="preview-kicker">Live preview</div>
+                  <div class="preview-title" id="preview-title">Verified opportunities report</div>
+                  <div class="preview-subtitle" id="preview-subtitle">Preparing committee data…</div>
+                </div>
+                <div class="preview-stats">
+                  <div class="preview-stat">
+                    <strong id="preview-record-count">—</strong>
+                    <span>Records</span>
+                  </div>
+                  <div class="preview-stat">
+                    <strong id="preview-company-count">—</strong>
+                    <span>Companies</span>
+                  </div>
+                  <div class="preview-stat">
+                    <strong id="preview-category-count">—</strong>
+                    <span>Categories</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="preview-body">
+                <div class="preview-panel">
+                  <div class="preview-panel-title">
+                    <span>Category coverage</span>
+                    <span class="text-tertiary">Verified vs target</span>
+                  </div>
+                  <div class="breakdown-list" id="preview-category-breakdown">
+                    <div class="loading-state"><span class="spinner"></span><span>Loading breakdown…</span></div>
+                  </div>
+                </div>
+                <div class="preview-panel">
+                  <div class="preview-panel-title">
+                    <span>Location mix</span>
+                    <span class="text-tertiary">Gurugram first</span>
+                  </div>
+                  <div class="breakdown-list" id="preview-location-breakdown">
+                    <div class="loading-state"><span class="spinner"></span><span>Loading breakdown…</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="preview-table-wrap">
+                <div class="preview-table-head">
+                  <div class="section-title" style="font-size: 11px"><i data-lucide="table-2"></i> Included records</div>
+                  <span class="text-xs text-tertiary" id="preview-caption">Showing the first 8</span>
+                </div>
+                <div class="preview-table">
+                  <div class="table-wrap">
+                    <table class="data-table">
+                      <thead>
+                        <tr>
+                          <th>Opportunity</th>
+                          <th>Category</th>
+                          <th>City</th>
+                          <th>Stipend</th>
+                          <th>Verified</th>
+                        </tr>
+                      </thead>
+                      <tbody id="preview-jobs-body">
+                        <tr class="skeleton-row">
+                          <td colspan="5"><div class="loading-state"><span class="spinner"></span><span>Loading preview…</span></div></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <div class="card table-card report-history-card">
+            <div class="card-header">
+              <div>
+                <div class="card-title"><i data-lucide="history"></i> Report history</div>
+                <div class="card-description">Every generated report is logged for the committee record</div>
+              </div>
+              <span class="badge badge-neutral" id="report-history-count">—</span>
+            </div>
+            <div class="table-wrap">
+              <table class="data-table report-history-table">
+                <thead>
+                  <tr>
+                    <th>Generated</th>
+                    <th>Report</th>
+                    <th>Format</th>
+                    <th>Scope</th>
+                    <th>Records</th>
+                    <th>Prepared by</th>
+                  </tr>
+                </thead>
+                <tbody id="report-history-body">
+                  <tr class="skeleton-row">
+                    <td colspan="6"><div class="loading-state"><span class="spinner"></span><span>Loading report history…</span></div></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </main>
+
+        <footer class="page-footer">
+          <div class="page-footer-inner">
+            <span>© 2026 NCR Tech Internship Finder · Placement Committee</span>
+            <span>Verified active: <strong id="footer-verified-count">0</strong> / 20 target</span>
+          </div>
+        </footer>
+      </div>
+    </div>
+
+    <div class="toast-stack" id="toast-stack" aria-live="polite" aria-atomic="false"></div>
+    <div id="drawer-root"></div>
+    <div id="modal-root"></div>
+    <div id="auth-root"></div>
+
+    <script type="module" src="/src/js/pages/reports.js"></script>
+  </body>
+</html>

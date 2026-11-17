@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#173B67" />
+    <meta
+      name="description"
+      content="Browse every discovered internship, filter by priority city, category, verification status, source, and work mode, and open the full committee record."
+    />
+    <title>All Opportunities · NCR Tech Internship Finder</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/src/css/app.css" />
+    <link rel="stylesheet" href="/src/css/jobs.css" />
+    <link rel="stylesheet" href="/src/css/responsive.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <div class="app-shell">
+      <aside class="sidebar" id="app-sidebar" aria-label="Primary navigation"></aside>
+      <div class="sidebar-backdrop" id="sidebar-backdrop" hidden></div>
+      <div class="app-body">
+        <header class="topbar" id="app-topbar"></header>
+
+        <main class="page-content" id="main-content" tabindex="-1">
+          <div class="page-heading">
+            <div class="page-heading-copy">
+              <div class="eyebrow"><i data-lucide="briefcase-business"></i> Opportunity directory</div>
+              <h1>All opportunities</h1>
+              <p class="page-subtitle">
+                Every discovered and manually added record lives here. Filter the pipeline, inspect source
+                details, shortlist roles, and drive the next verification decision.
+              </p>
+            </div>
+            <div class="page-actions">
+              <button class="btn btn-secondary" type="button" id="manual-add-button">
+                <i data-lucide="plus"></i> Add manually
+              </button>
+              <a class="btn btn-primary" href="/discover.html">
+                <i data-lucide="search"></i> Discover jobs
+              </a>
+            </div>
+          </div>
+
+          <div class="card filter-card">
+            <div class="card-body">
+              <form class="filter-grid" id="jobs-filter-form" novalidate>
+                <div class="form-group filter-search">
+                  <label class="form-label" for="job-search">Search</label>
+                  <div class="input-wrap">
+                    <i data-lucide="search"></i>
+                    <input
+                      class="input"
+                      id="job-search"
+                      name="search"
+                      type="search"
+                      maxlength="160"
+                      placeholder="Role, company, skill, or location"
+                      autocomplete="off"
+                    />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="filter-city">City</label>
+                  <select class="select" id="filter-city" name="city"></select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="filter-category">Category</label>
+                  <select class="select" id="filter-category" name="category"></select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="filter-status">Status</label>
+                  <select class="select" id="filter-status" name="status"></select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="filter-source">Source</label>
+                  <select class="select" id="filter-source" name="source"></select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="filter-work-mode">Work mode</label>
+                  <select class="select" id="filter-work-mode" name="workMode"></select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="filter-stipend">Minimum monthly stipend</label>
+                  <div class="input-addon">
+                    <input class="input" id="filter-stipend" name="minStipend" type="number" min="0" step="1000" placeholder="0" />
+                    <span class="input-addon-suffix">₹</span>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="filter-sort">Sort by</label>
+                  <select class="select" id="filter-sort" name="sort">
+                    <option value="created_at">Recently added</option>
+                    <option value="posted_at">Newest posting</option>
+                    <option value="deadline">Deadline soonest</option>
+                    <option value="company_name">Company A–Z</option>
+                    <option value="job_title">Role A–Z</option>
+                    <option value="relevance_score">Relevance score</option>
+                    <option value="stipend_min">Highest stipend</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="filter-order">Order</label>
+                  <select class="select" id="filter-order" name="order">
+                    <option value="desc">Descending</option>
+                    <option value="asc">Ascending</option>
+                  </select>
+                </div>
+              </form>
+
+              <div class="filter-actions">
+                <div class="filter-actions-left">
+                  <label class="switch" for="filter-saved">
+                    <input type="checkbox" id="filter-saved" name="savedOnly" />
+                    <span class="switch-track"></span>
+                    Shortlisted only
+                  </label>
+                  <span class="filter-summary" id="filter-summary">Preparing the directory…</span>
+                </div>
+                <div class="filter-actions-right">
+                  <button class="btn btn-sm btn-ghost" type="button" id="clear-filters">
+                    <i data-lucide="rotate-ccw"></i> Reset filters
+                  </button>
+                  <span class="search-result-meta" id="result-meta"></span>
+                </div>
+              </div>
+              <div class="active-filter-chips" id="active-filters"></div>
+            </div>
+          </div>
+
+          <div class="card table-card">
+            <div class="table-toolbar">
+              <div class="table-toolbar-copy" id="jobs-loading-copy">
+                <i data-lucide="briefcase-business"></i> Opportunity directory
+              </div>
+              <div class="header-actions">
+                <span class="text-xs text-tertiary" id="sort-caption"></span>
+                <button class="btn btn-sm btn-secondary" type="button" id="refresh-jobs">
+                  <i data-lucide="refresh-cw"></i> Refresh
+                </button>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table class="data-table opportunities-table">
+                <thead>
+                  <tr>
+                    <th class="col-role">Opportunity</th>
+                    <th>Category</th>
+                    <th>Location</th>
+                    <th>Stipend</th>
+                    <th>Source</th>
+                    <th>Status</th>
+                    <th>Deadline</th>
+                    <th aria-label="Actions"></th>
+                  </tr>
+                </thead>
+                <tbody id="jobs-body">
+                  <tr class="skeleton-row">
+                    <td colspan="8"><div class="loading-state"><span class="spinner"></span><span>Loading opportunities…</span></div></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div id="jobs-pagination"></div>
+          </div>
+        </main>
+
+        <footer class="page-footer">
+          <div class="page-footer-inner">
+            <span>© 2026 NCR Tech Internship Finder · Placement Committee</span>
+            <span>Verified active: <strong id="footer-verified-count">0</strong> / 20 target</span>
+          </div>
+        </footer>
+      </div>
+    </div>
+
+    <div class="toast-stack" id="toast-stack" aria-live="polite" aria-atomic="false"></div>
+    <div id="drawer-root"></div>
+    <div id="modal-root"></div>
+    <div id="auth-root"></div>
+
+    <script type="module" src="/src/js/pages/opportunities.js"></script>
+  </body>
+</html>

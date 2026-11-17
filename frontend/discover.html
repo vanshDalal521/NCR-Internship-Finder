@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#173B67" />
+    <meta
+      name="description"
+      content="Run priority-city internship discovery across JSearch and Adzuna, then send every result through the committee's verification gate."
+    />
+    <title>Discover Jobs · NCR Tech Internship Finder</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/src/css/app.css" />
+    <link rel="stylesheet" href="/src/css/jobs.css" />
+    <link rel="stylesheet" href="/src/css/responsive.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <div class="app-shell">
+      <aside class="sidebar" id="app-sidebar" aria-label="Primary navigation"></aside>
+      <div class="sidebar-backdrop" id="sidebar-backdrop" hidden></div>
+      <div class="app-body">
+        <header class="topbar" id="app-topbar"></header>
+
+        <main class="page-content" id="main-content" tabindex="-1">
+          <div class="page-heading">
+            <div class="page-heading-copy">
+              <div class="eyebrow"><i data-lucide="search"></i> Sourcing workspace</div>
+              <h1>Discover internship opportunities</h1>
+              <p class="page-subtitle">
+                Search one priority city at a time using the committee's target keywords. New results are
+                deduplicated, stored as pending, and queued for human verification — never auto-verified.
+              </p>
+            </div>
+            <div class="page-actions">
+              <button class="btn btn-secondary" type="button" id="manual-job-button">
+                <i data-lucide="plus"></i> Add manually
+              </button>
+              <a class="btn btn-primary" href="/opportunities.html">
+                <i data-lucide="briefcase-business"></i> Open directory
+              </a>
+            </div>
+          </div>
+
+          <div id="discover-config-banner"></div>
+
+          <div class="content-split discover-layout">
+            <div>
+              <div class="card discovery-form-card">
+                <div class="card-header">
+                  <div>
+                    <div class="card-title"><i data-lucide="zap"></i> Run a discovery sweep</div>
+                    <div class="card-description">
+                      Live queries against the configured job APIs. Results depend on provider coverage and rate limits.
+                    </div>
+                  </div>
+                  <span class="badge badge-blue">Live API</span>
+                </div>
+                <div class="card-body">
+                  <form class="discovery-form" id="discovery-form" novalidate>
+                    <div class="form-group">
+                      <label class="form-label" for="discovery-query">
+                        Keyword or role
+                        <span class="optional">Minimum 2 characters</span>
+                      </label>
+                      <div class="input-wrap">
+                        <i data-lucide="search"></i>
+                        <input
+                          class="input"
+                          id="discovery-query"
+                          name="query"
+                          type="text"
+                          maxlength="120"
+                          required
+                          autocomplete="off"
+                          placeholder="e.g., frontend developer intern"
+                        />
+                      </div>
+                      <div class="form-help">
+                        Pick a suggested keyword or enter a role variation. Search each city separately for better coverage.
+                      </div>
+                      <div class="keyword-suggestions" id="keyword-chips"></div>
+                    </div>
+
+                    <div class="form-grid form-grid-3">
+                      <div class="form-group">
+                        <label class="form-label" for="discovery-city">Priority city</label>
+                        <select class="select" id="discovery-city" name="city"></select>
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label" for="discovery-category">Category filter <span class="optional">Optional</span></label>
+                        <select class="select" id="discovery-category" name="category">
+                          <option value="">Any target category</option>
+                        </select>
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label" for="discovery-pages">Pages per source</label>
+                        <select class="select" id="discovery-pages" name="pages">
+                          <option value="1">1 page · faster</option>
+                          <option value="2">2 pages · broader</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div class="form-group">
+                      <span class="form-label">Job sources</span>
+                      <div class="source-selector" id="source-selector"></div>
+                      <div class="form-help">
+                        JSearch and Adzuna API keys are stored only in the backend environment. Missing providers are disabled.
+                      </div>
+                    </div>
+
+                    <label class="switch" for="discovery-analyze">
+                      <input type="checkbox" id="discovery-analyze" name="analyzeNew" />
+                      <span class="switch-track"></span>
+                      Run Gemini analysis on up to 3 new roles
+                    </label>
+
+                    <div class="discovery-actions">
+                      <button class="btn btn-primary" type="submit" id="run-discovery">
+                        <i data-lucide="zap"></i> Run discovery sweep
+                      </button>
+                      <button class="btn btn-secondary" type="reset" id="reset-discovery">
+                        <i data-lucide="rotate-ccw"></i> Reset
+                      </button>
+                      <div class="form-actions-note">
+                        <i data-lucide="shield-check"></i> All results enter the queue as pending
+                      </div>
+                    </div>
+                  </form>
+
+                  <div class="manual-entry-link" style="margin-top: 18px">
+                    <div>
+                      <strong>Found a role outside the APIs?</strong>
+                      <p>Add the posting manually and attach its original application URL.</p>
+                    </div>
+                    <button class="btn btn-secondary btn-sm" type="button" id="manual-job-link">
+                      <i data-lucide="plus"></i> Add manually
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="discovery-results" id="discovery-results" hidden></div>
+            </div>
+
+            <div class="side-stack">
+              <div class="card usage-card">
+                <div class="card-header">
+                  <div>
+                    <div class="card-title">Discovery quota</div>
+                    <div class="card-description">Rolling 24-hour window</div>
+                  </div>
+                  <span class="badge badge-neutral" id="quota-badge">—</span>
+                </div>
+                <div class="card-body">
+                  <div class="usage-header">
+                    <span class="usage-label">Searches used</span>
+                    <span class="usage-value"><span id="quota-used">—</span> <span class="muted">/ <span id="quota-limit">—</span></span></span>
+                  </div>
+                  <div class="progress-track">
+                    <div class="progress-fill" id="quota-progress" style="width: 0%"></div>
+                  </div>
+                  <div class="usage-footer">
+                    <span id="quota-remaining">Checking quota…</span>
+                    <span>Resets continuously</span>
+                  </div>
+                  <div class="integration-pills" id="integration-pills"></div>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="card-header">
+                  <div>
+                    <div class="card-title">Recent searches</div>
+                    <div class="card-description">Last 8 discovery attempts</div>
+                  </div>
+                  <i data-lucide="history" style="width: 15px; height: 15px; color: var(--text-tertiary)"></i>
+                </div>
+                <div class="history-list" id="search-history">
+                  <div class="loading-state"><span class="spinner"></span><span>Loading history…</span></div>
+                </div>
+              </div>
+
+              <div class="card tips-card">
+                <div class="card-body">
+                  <div class="tips-title"><i data-lucide="sparkles"></i> Committee sourcing tips</div>
+                  <div class="tips-list">
+                    <div class="tip-item">
+                      <span class="tip-number">1</span>
+                      <span>Search Gurugram first, then Noida, Delhi, and Faridabad separately. Provider location matching is stricter with one city per query.</span>
+                    </div>
+                    <div class="tip-item">
+                      <span class="tip-number">2</span>
+                      <span>Rotate between role keywords. “React developer intern” and “frontend developer intern” return different result sets.</span>
+                    </div>
+                    <div class="tip-item">
+                      <span class="tip-number">3</span>
+                      <span>Provider APIs can include stale or non-internship listings. The backend filters obvious mismatches, but the committee still reviews every posting.</span>
+                    </div>
+                    <div class="tip-item">
+                      <span class="tip-number">4</span>
+                      <span>When no API is configured, the manual entry path remains available and follows the same verification workflow.</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+
+        <footer class="page-footer">
+          <div class="page-footer-inner">
+            <span>© 2026 NCR Tech Internship Finder · Placement Committee</span>
+            <span>Verified active: <strong id="footer-verified-count">0</strong> / 20 target</span>
+          </div>
+        </footer>
+      </div>
+    </div>
+
+    <div class="toast-stack" id="toast-stack" aria-live="polite" aria-atomic="false"></div>
+    <div id="drawer-root"></div>
+    <div id="modal-root"></div>
+    <div id="auth-root"></div>
+
+    <script type="module" src="/src/js/pages/discover.js"></script>
+  </body>
+</html>

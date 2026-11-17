@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#173B67" />
+    <meta
+      name="description"
+      content="NCR Tech Internship Finder — discovery, human verification, and committee reporting for B.Tech CSE internships across Gurugram, Noida, Delhi, and Faridabad."
+    />
+    <title>Dashboard · NCR Tech Internship Finder</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/src/css/app.css" />
+    <link rel="stylesheet" href="/src/css/dashboard.css" />
+    <link rel="stylesheet" href="/src/css/jobs.css" />
+    <link rel="stylesheet" href="/src/css/responsive.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <div class="app-shell">
+      <aside class="sidebar" id="app-sidebar" aria-label="Primary navigation"></aside>
+      <div class="sidebar-backdrop" id="sidebar-backdrop" hidden></div>
+      <div class="app-body">
+        <header class="topbar" id="app-topbar"></header>
+
+        <main class="page-content" id="main-content" tabindex="-1">
+          <div class="page-heading">
+            <div class="page-heading-copy">
+              <div class="eyebrow"><i data-lucide="activity"></i> Placement overview</div>
+              <h1>Internship pipeline dashboard</h1>
+              <p class="page-subtitle">
+                Track verified opportunities against the 20-role target, watch the human review queue, and
+                keep sourcing focused on Gurugram-first NCR internships.
+              </p>
+            </div>
+            <div class="page-actions">
+              <div class="segmented" id="scope-control" role="group" aria-label="Dashboard data scope">
+                <button type="button" class="active" data-scope="all" aria-pressed="true">All records</button>
+                <button type="button" data-scope="verified" aria-pressed="false">Verified only</button>
+              </div>
+              <button class="btn btn-secondary" type="button" id="dashboard-refresh">
+                <i data-lucide="refresh-cw"></i> Refresh
+              </button>
+            </div>
+          </div>
+
+          <div id="dashboard-alert"></div>
+
+          <div class="dashboard-stats" id="dashboard-stats" aria-live="polite">
+            <div class="stat-card">
+              <div class="stat-card-head"><span class="skeleton skeleton-text skeleton-60"></span></div>
+              <div class="skeleton skeleton-text" style="height: 22px; width: 45%; margin-top: 10px"></div>
+              <div class="skeleton skeleton-text skeleton-80" style="margin-top: 12px"></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-head"><span class="skeleton skeleton-text skeleton-60"></span></div>
+              <div class="skeleton skeleton-text" style="height: 22px; width: 45%; margin-top: 10px"></div>
+              <div class="skeleton skeleton-text skeleton-80" style="margin-top: 12px"></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-head"><span class="skeleton skeleton-text skeleton-60"></span></div>
+              <div class="skeleton skeleton-text" style="height: 22px; width: 45%; margin-top: 10px"></div>
+              <div class="skeleton skeleton-text skeleton-80" style="margin-top: 12px"></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-head"><span class="skeleton skeleton-text skeleton-60"></span></div>
+              <div class="skeleton skeleton-text" style="height: 22px; width: 45%; margin-top: 10px"></div>
+              <div class="skeleton skeleton-text skeleton-80" style="margin-top: 12px"></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-head"><span class="skeleton skeleton-text skeleton-60"></span></div>
+              <div class="skeleton skeleton-text" style="height: 22px; width: 45%; margin-top: 10px"></div>
+              <div class="skeleton skeleton-text skeleton-80" style="margin-top: 12px"></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-head"><span class="skeleton skeleton-text skeleton-60"></span></div>
+              <div class="skeleton skeleton-text" style="height: 22px; width: 45%; margin-top: 10px"></div>
+              <div class="skeleton skeleton-text skeleton-80" style="margin-top: 12px"></div>
+            </div>
+          </div>
+
+          <div class="dashboard-analytics-head">
+            <div>
+              <div class="section-title"><i data-lucide="chart-column"></i> Pipeline analytics</div>
+              <div class="section-caption" id="analytics-caption">Loading distribution data…</div>
+            </div>
+            <div class="chart-legend" id="chart-legend">
+              <span class="chart-legend-item"><span class="legend-dot"></span> Opportunities</span>
+              <span class="chart-legend-item"><span class="legend-dot green"></span> Verified</span>
+              <span class="chart-legend-item"><span class="legend-dot slate"></span> Target</span>
+            </div>
+          </div>
+
+          <div class="chart-grid">
+            <div class="card chart-card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">Category coverage</div>
+                  <div class="card-description">Verified roles compared with category targets</div>
+                </div>
+                <span class="badge badge-blue" id="category-chart-badge">—</span>
+              </div>
+              <div class="card-body">
+                <div class="chart-box">
+                  <canvas id="category-chart" role="img" aria-label="Category coverage chart"></canvas>
+                  <div class="chart-empty" id="category-chart-empty" hidden>
+                    <i data-lucide="chart-column"></i>
+                    <div><strong>No category data yet</strong>Run a discovery sweep or add an opportunity manually.</div>
+                  </div>
+                </div>
+                <div class="chart-footnote">
+                  <i data-lucide="info"></i> Targets: Web 5 · Data 4 · AI/ML 4 · Cyber 2 · Software 2 · Cloud 1 · Tech Ops 1 · Biz Ops 1
+                </div>
+              </div>
+            </div>
+
+            <div class="card chart-card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">Location priority mix</div>
+                  <div class="card-description">Gurugram → Noida → Delhi → Faridabad</div>
+                </div>
+                <span class="badge badge-neutral" id="location-chart-badge">—</span>
+              </div>
+              <div class="card-body">
+                <div class="chart-box">
+                  <canvas id="location-chart" role="img" aria-label="Opportunity locations chart"></canvas>
+                  <div class="chart-empty" id="location-chart-empty" hidden>
+                    <i data-lucide="map-pin"></i>
+                    <div><strong>No location data yet</strong>NCR roles will appear here once records are added.</div>
+                  </div>
+                </div>
+                <div class="chart-footnote">
+                  <i data-lucide="map-pinned"></i> Sourcing order is a committee preference and can be reordered in Settings.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="dashboard-lower">
+            <div class="card table-card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">Recently added opportunities</div>
+                  <div class="card-description">The latest records entering the directory</div>
+                </div>
+                <a class="btn btn-sm btn-secondary" href="/opportunities.html">View all <i data-lucide="arrow-right"></i></a>
+              </div>
+              <div class="table-wrap">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Opportunity</th>
+                      <th>Category</th>
+                      <th>City</th>
+                      <th>Status</th>
+                      <th>Added</th>
+                    </tr>
+                  </thead>
+                  <tbody id="recent-jobs-body">
+                    <tr class="skeleton-row"><td colspan="5"><div class="loading-state"><span class="spinner"></span><span>Loading recent opportunities…</span></div></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">Verification queue</div>
+                  <div class="card-description">Oldest pending records need attention first</div>
+                </div>
+                <span class="badge badge-pending" id="queue-badge">—</span>
+              </div>
+              <div class="review-queue" id="dashboard-review-queue">
+                <div class="loading-state"><span class="spinner"></span><span>Loading queue…</span></div>
+              </div>
+              <div class="queue-footer">
+                <a class="link-btn" href="/verification.html">Open the Verification Centre <i data-lucide="arrow-right"></i></a>
+              </div>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">Category targets</div>
+                  <div class="card-description" id="category-target-caption">Verified active roles required per category</div>
+                </div>
+                <a class="btn btn-sm btn-secondary" href="/reports.html"><i data-lucide="file-bar-chart"></i> Build report</a>
+              </div>
+              <div class="category-target-strip" id="category-target-strip">
+                <div class="loading-state"><span class="spinner"></span><span>Loading targets…</span></div>
+              </div>
+            </div>
+          </div>
+        </main>
+
+        <footer class="page-footer">
+          <div class="page-footer-inner">
+            <span>© 2026 NCR Tech Internship Finder · Placement Committee</span>
+            <span>Verified active: <strong id="footer-verified-count">0</strong> / 20 target</span>
+          </div>
+        </footer>
+      </div>
+    </div>
+
+    <div class="toast-stack" id="toast-stack" aria-live="polite" aria-atomic="false"></div>
+    <div id="drawer-root"></div>
+    <div id="modal-root"></div>
+    <div id="auth-root"></div>
+
+    <script type="module" src="/src/js/pages/dashboard.js"></script>
+  </body>
+</html>

@@ -1,0 +1,260 @@
+/* ==========================================================================
+   Application shell responsiveness
+   Loaded last so it can adjust the shared layout without changing page styles.
+   ========================================================================== */
+
+@media (max-width: 1280px) {
+  :root {
+    --content-padding: 24px;
+  }
+
+  .grid-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1100px) {
+  .grid-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1024px) {
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform var(--transition-slow);
+    box-shadow: none;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .sidebar-backdrop.visible {
+    display: block;
+  }
+
+  .app-body {
+    margin-left: 0;
+  }
+
+  .mobile-menu-btn {
+    display: inline-flex;
+  }
+
+  .topbar-inner {
+    gap: 12px;
+  }
+
+  .page-content {
+    padding-top: 24px;
+  }
+}
+
+@media (max-width: 900px) {
+  .page-heading {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .page-actions {
+    width: 100%;
+    padding-top: 0;
+    flex-wrap: wrap;
+  }
+
+  .section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .grid-3,
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-overlay {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-brand-panel {
+    display: none;
+  }
+
+  .auth-form-panel {
+    min-height: 100vh;
+    padding: 28px;
+  }
+
+  .auth-mobile-brand {
+    display: flex;
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --content-padding: 18px;
+    --topbar-height: 60px;
+  }
+
+  .topbar-date,
+  .topbar-divider {
+    display: none;
+  }
+
+  .profile-copy {
+    display: none;
+  }
+
+  .profile-trigger {
+    gap: 4px;
+  }
+
+  .page-heading h1 {
+    font-size: var(--text-xl);
+  }
+
+  .page-content {
+    padding-bottom: 36px;
+  }
+
+  .page-footer {
+    padding-bottom: 18px;
+  }
+
+  .page-footer-inner {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .form-grid,
+  .form-grid-3 {
+    grid-template-columns: 1fr;
+  }
+
+  .grid-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .table-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .table-toolbar .segmented,
+  .table-toolbar .header-actions {
+    width: 100%;
+  }
+
+  .mini-stat-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .modal-header,
+  .modal-body,
+  .modal-footer,
+  .drawer-header,
+  .drawer-body,
+  .drawer-footer {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .drawer {
+    width: 100vw;
+  }
+
+  .toast-stack {
+    right: 12px;
+    bottom: 12px;
+    width: min(360px, calc(100vw - 24px));
+  }
+}
+
+@media (max-width: 540px) {
+  :root {
+    --content-padding: 14px;
+  }
+
+  .breadcrumbs {
+    gap: 5px;
+    font-size: 10.5px;
+  }
+
+  .topbar-inner {
+    gap: 8px;
+  }
+
+  .page-heading {
+    margin-bottom: 18px;
+  }
+
+  .page-subtitle {
+    font-size: 11.75px;
+  }
+
+  .page-actions .btn {
+    flex: 1;
+  }
+
+  .grid-4,
+  .mini-stat-row {
+    grid-template-columns: 1fr;
+  }
+
+  .card-header,
+  .card-body {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .pagination {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .auth-form-panel {
+    align-items: flex-start;
+    padding: 22px 18px;
+  }
+
+  .auth-card {
+    max-width: none;
+  }
+
+  .confirm-actions,
+  .modal-footer {
+    flex-direction: column-reverse;
+  }
+
+  .confirm-actions .btn,
+  .modal-footer .btn {
+    width: 100%;
+  }
+}
+
+@media print {
+  .sidebar,
+  .topbar,
+  .page-actions,
+  .page-footer,
+  .toast-stack,
+  .drawer,
+  .drawer-backdrop {
+    display: none !important;
+  }
+
+  .app-body {
+    margin-left: 0;
+  }
+
+  .page-content {
+    max-width: none;
+    padding: 0;
+  }
+}
