@@ -5,7 +5,7 @@
     "frontend"
   ],
   "scripts": {
-    "install": "npm ci --workspaces",
+    "install": "npm ci --workspace=backend && npm ci --workspace=frontend",
     "build": "npm run build --workspace=frontend"
   }
 }
