@@ -70,6 +70,22 @@ if (distExists) {
     res.sendFile(resolve(env.frontendDist, 'index.html'));
   });
 
+  const pageNames = [
+    'discover',
+    'opportunities',
+    'verification',
+    'companies',
+    'reports',
+    'settings',
+  ];
+
+  for (const page of pageNames) {
+    app.get(`/${page}`, (_req, res) => {
+      res.setHeader('Cache-Control', 'no-store');
+      res.sendFile(resolve(env.frontendDist, `${page}.html`));
+    });
+  }
+
   app.get('/pages/:page', (req, res, next) => {
     const requested = req.params.page;
     const fileName = requested.endsWith('.html') ? requested : `${requested}.html`;

@@ -62,7 +62,11 @@ function buildPrompt(job) {
 function extractText(payload) {
   const parts = payload?.candidates?.[0]?.content?.parts;
   if (!Array.isArray(parts)) return '';
-  return parts.map((part) => part?.text || '').join('').trim();
+  const visible = parts.filter((part) => part && part.thought !== true);
+  return (visible.length ? visible : parts)
+    .map((part) => part?.text || '')
+    .join('')
+    .trim();
 }
 
 function parseJson(text) {
@@ -98,6 +102,9 @@ function mapGeminiError(error) {
   if (status === 429) {
     return ApiError.tooManyRequests('The Gemini API quota has been reached. Try again later.');
   }
+  if (status === 503) {
+    return ApiError.upstream('Gemini is temporarily overloaded. Try again in a few minutes.');
+  }
   if (status) return ApiError.upstream(`Gemini returned HTTP ${status}.`);
   if (error.code === 'ECONNABORTED') return ApiError.upstream('Gemini did not respond in time.');
   return ApiError.upstream('Gemini could not be reached.');
@@ -131,9 +138,10 @@ export async function analyzeJobWithGemini(job) {
         contents: [{ role: 'user', parts: [{ text: buildPrompt(job) }] }],
         generationConfig: {
           temperature: 0.2,
-          maxOutputTokens: 1600,
+          maxOutputTokens: 2048,
           responseMimeType: 'application/json',
           responseSchema: GEMINI_SCHEMA,
+          thinkingConfig: { thinkingBudget: 0 },
         },
       },
       {
@@ -155,7 +163,17 @@ export async function analyzeJobWithGemini(job) {
   }
 
   const parsedJson = parseJson(rawText);
-  if (!parsedJson) throw ApiError.upstream('Gemini returned an analysis that was not valid JSON.');
+  if (!parsedJson) {
+    logger.warn('Gemini analysis was not valid JSON', {
+      rawLength: rawText.length,
+      parts: payload?.candidates?.[0]?.content?.parts?.map((part) => ({
+        thought: part?.thought === true,
+        length: part?.text?.length || 0,
+      })),
+      finishReason: payload?.candidates?.[0]?.finishReason,
+    });
+    throw ApiError.upstream('Gemini returned an analysis that was not valid JSON.');
+  }
 
   const validated = responseSchema.safeParse(parsedJson);
   if (!validated.success) {

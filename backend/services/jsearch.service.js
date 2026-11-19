@@ -41,11 +41,10 @@ export async function searchJSearch({ query, location, pages = 1 }) {
   }
 
   try {
-    const response = await client.get('/search', {
+    const response = await client.get('/search-v2', {
       headers: { 'X-RapidAPI-Key': env.JSEARCH_API_KEY },
       params: {
         query: `${query} in ${location}, India`,
-        page: 1,
         num_pages: Math.min(Math.max(pages, 1), 2),
         country: env.JSEARCH_COUNTRY,
         date_posted: 'month',
@@ -53,12 +52,17 @@ export async function searchJSearch({ query, location, pages = 1 }) {
       },
     });
 
-    const jobs = Array.isArray(response.data?.data) ? response.data.data : [];
+    const payload = response.data?.data;
+    const jobs = Array.isArray(payload)
+      ? payload
+      : Array.isArray(payload?.jobs)
+        ? payload.jobs
+        : [];
     logger.info('JSearch query completed', {
       query,
       location,
       returned: jobs.length,
-      requestId: response.headers?.['x-ratelimit-requests-remaining'] ? undefined : undefined,
+      requestId: response.data?.request_id,
     });
     return jobs;
   } catch (error) {
