@@ -10,7 +10,7 @@ The application is deliberately **verified-first**. New API results are screened
 - **Discover Jobs** — 16 internship keywords, priority-city selection, JSearch and optional Adzuna sources, rolling 24-hour search quota, automated scheduled sweeps, and AI-assisted extraction when Gemini is configured.
 - **All Opportunities** — searchable directory that defaults to **link-verified** records, with filters for city, category, status, source, work mode, stipend, screening state, shortlist state, and sorting.
 - **Verification Centre** — queue by status, automated screening results, original-posting checklist, SSRF-protected link checking, reviewer attribution, decision notes, and an immutable audit trail.
-- **Companies** — employer directory with verified-active counts, city coverage, shortlisted roles, and linked opportunities.
+- **Companies** — employer directory with link-screened and verified-active counts, city coverage, shortlisted roles, and linked current opportunities.
 - **Reports** — verified-only or full-directory Excel/PDF exports, live preview, category scope, configurable columns, and export history.
 - **Settings** — committee profile, priority-city order, category focus, integration readiness, live automation status with a **Run now** action, runtime status, and maintenance actions.
 
@@ -210,7 +210,7 @@ Every new record enters a background screening pipeline:
 3. Gemini analysis runs next (when configured) to extract skills, eligibility, relevance, and red flags.
 4. The portal receives a server-sent event and refreshes open pages automatically. A 60-second polling fallback covers dropped streams.
 
-The **All Opportunities** page defaults to the `Link verified only` filter, so unscreened records stay in the Verification Centre rather than the main directory.
+The **All Opportunities** page defaults to the `Link verified only` filter, so unscreened records stay in the Verification Centre rather than the main directory. Dashboard recent activity, company counts, and company profiles use the same gate: blocked, expired, or unscreened records never leak into the main portal.
 
 ### Verification
 
@@ -289,6 +289,7 @@ The backend suite covers:
 
 - JSearch, Adzuna, and manual normalisation/rejection rules;
 - duplicate detection by source ID, URL, and fingerprint;
+- 24-hour freshness gating for recent, company, and directory views;
 - dashboard, company, and report analytics;
 - API health/config, directory filters, manual entry, verification safeguards and audit logging, shortlist operations, SSRF protection, and report history.
 

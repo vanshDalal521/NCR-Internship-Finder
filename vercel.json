@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "installCommand": "npm run install",
+  "installCommand": "npm ci --workspace=backend && npm ci --workspace=frontend",
   "buildCommand": "npm run build",
   "builds": [
     {

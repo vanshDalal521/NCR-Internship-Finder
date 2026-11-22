@@ -28,6 +28,8 @@ export const jobListQuerySchema = paginationQuerySchema.extend({
   workMode: z.enum(WORK_MODES).optional(),
   savedOnly: booleanQuery.optional(),
   activeOnly: booleanQuery.optional(),
+  screenedOnly: booleanQuery.optional(),
+  freshOnly: booleanQuery.optional(),
   minStipend: z.coerce.number().min(0).max(10_000_000).optional(),
   sort: z
     .enum(['created_at', 'posted_at', 'job_title', 'company_name', 'stipend_min', 'deadline', 'relevance_score'])

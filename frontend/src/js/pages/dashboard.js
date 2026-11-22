@@ -509,6 +509,11 @@ $(async () => {
 });
 
 // Expose a tiny hook for the shared drawer's post-save refresh without a full reload.
+let realtimeRefreshTimer = null;
 window.addEventListener('ncr:jobs-changed', () => {
-  if (state.data) loadDashboard();
+  if (!state.data || realtimeRefreshTimer) return;
+  realtimeRefreshTimer = window.setTimeout(() => {
+    realtimeRefreshTimer = null;
+    loadDashboard();
+  }, 1200);
 });

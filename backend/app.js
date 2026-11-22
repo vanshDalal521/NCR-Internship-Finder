@@ -9,8 +9,9 @@ import { apiLimiter } from './middleware/rate-limiter.js';
 import { corsOptions, requestLogger } from './middleware/request.js';
 import { securityHeaders } from './middleware/security.js';
 import { errorHandler, notFoundHandler } from './utils/http-error.js';
-import { requireAuth } from './utils/auth.js';
+import { requireAuth, verifySessionToken } from './utils/auth.js';
 import { getStore } from './services/store/index.js';
+import { addRealtimeClient } from './services/realtime.service.js';
 import authRoutes from './routes/auth.routes.js';
 import apiRoutes from './routes/index.js';
 
@@ -46,6 +47,19 @@ app.get('/api/health', async (_req, res) => {
       error: { code: 'DATABASE_UNAVAILABLE', message: 'The application database is unavailable.' },
     });
   }
+});
+
+app.get('/api/events', (req, res) => {
+  if (env.authRequired) {
+    const token = typeof req.query.token === 'string' ? req.query.token : '';
+    if (!verifySessionToken(token)) {
+      return res.status(401).json({
+        success: false,
+        error: { code: 'UNAUTHORIZED', message: 'Sign in to receive live updates.' },
+      });
+    }
+  }
+  return addRealtimeClient(req, res);
 });
 
 app.use('/api', apiLimiter);

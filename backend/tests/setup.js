@@ -13,6 +13,9 @@ process.env.ADZUNA_APP_ID = '';
 process.env.ADZUNA_APP_KEY = '';
 process.env.GEMINI_API_KEY = '';
 process.env.DISCOVERY_DAILY_LIMIT = '5';
+process.env.AUTO_SCREEN_ENABLED = 'false';
+process.env.AUTO_DISCOVERY_ENABLED = 'false';
+process.env.JOB_FRESHNESS_HOURS = '24';
 
 afterAll(async () => {
   const { resetStoreForTests } = await import('../services/store/index.js');

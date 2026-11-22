@@ -17,8 +17,12 @@ import {
 import { isAdzunaConfigured } from '../services/adzuna.service.js';
 import { isGeminiConfigured } from '../services/gemini.service.js';
 import { isJSearchConfigured } from '../services/jsearch.service.js';
+import { realtimeStats } from '../services/realtime.service.js';
+import { runSchedulerTick, schedulerStatus } from '../services/scheduler.service.js';
+import { screeningWorkerState } from '../services/screening.service.js';
 import { getStore } from '../services/store/index.js';
 import { startOfRollingWindow } from '../utils/dates.js';
+import { ApiError } from '../utils/http-error.js';
 
 export async function systemConfig(_req, res) {
   res.json({
@@ -52,9 +56,10 @@ export async function systemConfig(_req, res) {
 
 export async function systemStatus(_req, res) {
   const store = await getStore();
-  const [summary, searchesUsed] = await Promise.all([
+  const [summary, searchesUsed, automation] = await Promise.all([
     store.getSystemSummary(),
     store.countSearchesSince(startOfRollingWindow(24)),
+    schedulerStatus(),
   ]);
 
   res.json({
@@ -69,6 +74,16 @@ export async function systemStatus(_req, res) {
           ? 'Local development storage. Configure Supabase before deploying.'
           : null,
       authRequired: env.authRequired,
+      freshnessHours: env.JOB_FRESHNESS_HOURS,
+      screening: {
+        enabled: env.AUTO_SCREEN_ENABLED,
+        analysisLimit: env.AUTO_ANALYSIS_LIMIT,
+        autoVerify: env.AUTO_VERIFY_SCREENED,
+        autoVerifyMinScore: env.AUTO_VERIFY_MIN_SCORE,
+        ...screeningWorkerState(),
+      },
+      realtime: realtimeStats(),
+      automation,
       api: {
         jsearch: { configured: isJSearchConfigured(), host: env.JSEARCH_API_HOST },
         adzuna: { configured: isAdzunaConfigured(), country: env.ADZUNA_COUNTRY },
@@ -84,6 +99,17 @@ export async function systemStatus(_req, res) {
       summary,
     },
   });
+}
+
+export async function runAutomationNow(_req, res) {
+  if (!env.AUTO_DISCOVERY_ENABLED && !env.AUTO_SCREEN_ENABLED) {
+    throw ApiError.badRequest(
+      'Automation is disabled. Set AUTO_DISCOVERY_ENABLED or AUTO_SCREEN_ENABLED in the backend environment.',
+    );
+  }
+
+  const result = await runSchedulerTick({ trigger: 'manual' });
+  res.json({ success: true, data: result });
 }
 
 export async function reindexCompanies(_req, res) {

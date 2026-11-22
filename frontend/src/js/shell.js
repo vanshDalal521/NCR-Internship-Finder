@@ -3,6 +3,7 @@ import '@fontsource-variable/inter';
 import { clearToken, describeError, getToken, http, setToken } from './api.js';
 import { loadConfig } from './config.js';
 import { getPrefs, getProfile, savePrefs } from './preferences.js';
+import { startRealtime } from './realtime.js';
 import { escapeHtml, icon, initials, refreshIcons, setButtonLoading, showConnectionError } from './ui.js';
 
 const NAV_PRIMARY = [
@@ -103,6 +104,10 @@ function renderTopbar(page) {
         <span class="breadcrumb-current">${escapeHtml(pageTitleFor(page))}</span>
       </nav>
       <div class="topbar-spacer"></div>
+      <span class="live-indicator" data-live-indicator data-state="connecting" title="Connecting to live updates.">
+        <span class="live-dot"></span>
+        <span data-live-label>Connecting</span>
+      </span>
       <div class="topbar-date">${icon('calendar-days')} ${escapeHtml(today)}</div>
       <div class="topbar-divider"></div>
       <div class="profile-wrap">
@@ -409,6 +414,17 @@ export async function boot({ page = 'dashboard' } = {}) {
 
   refreshIcons();
   syncSidebarSummary();
+  startRealtime();
+
+  let sidebarTimer = null;
+  window.addEventListener('ncr:jobs-changed', () => {
+    if (sidebarTimer) return;
+    sidebarTimer = window.setTimeout(() => {
+      sidebarTimer = null;
+      syncSidebarSummary();
+    }, 1200);
+  });
+
   return { me: state.me, config, profile: state.profile };
 }
 

@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { ApiError } from '../../utils/http-error.js';
 import { logger } from '../../utils/logger.js';
+import { env } from '../../config/env.js';
 import { daysAgo } from '../../utils/dates.js';
 import { companyPayloadFromJob } from './company-mapper.js';
 import {
@@ -105,6 +106,22 @@ export class SupabaseStore {
     if (filters.source) query = query.eq('source', filters.source);
     if (filters.workMode) query = query.eq('work_mode', filters.workMode);
     if (filters.activeOnly) query = query.eq('is_active', true);
+    if (filters.screenedOnly) {
+      const cutoff = new Date(
+        Date.now() - env.JOB_FRESHNESS_HOURS * 60 * 60 * 1000,
+      ).toISOString();
+      query = query.or(
+        `verification_status.eq.verified_active,and(screening_status.eq.passed,verification_status.neq.expired,is_active.eq.true,or(posted_at.gte.${cutoff},created_at.gte.${cutoff}))`,
+      );
+    }
+    if (filters.freshOnly) {
+      const cutoff = new Date(
+        Date.now() - env.JOB_FRESHNESS_HOURS * 60 * 60 * 1000,
+      ).toISOString();
+      query = query.or(
+        `posted_at.gte.${cutoff},created_at.gte.${cutoff},verification_status.eq.verified_active`,
+      );
+    }
     if (filters.minStipend) {
       query = query.or(
         `stipend_monthly_min.gte.${filters.minStipend},stipend_monthly_max.gte.${filters.minStipend}`,
@@ -390,11 +407,12 @@ export class SupabaseStore {
     return data;
   }
 
-  async countSearchesSince(isoDate) {
+  async countSearchesSince(isoDate, { searchedBy = null } = {}) {
     const { count, error } = await this.client
       .from('search_history')
       .select('id', { head: true, count: 'exact' })
-      .gte('created_at', isoDate);
+      .gte('created_at', isoDate)
+      .match(searchedBy ? { searched_by: searchedBy } : {});
     if (error) throw this.#error(error, 'count searches');
     return count || 0;
   }

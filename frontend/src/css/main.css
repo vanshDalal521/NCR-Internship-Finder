@@ -383,6 +383,74 @@ ol {
   color: var(--text-tertiary);
 }
 
+.live-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 9px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-subtle, #f8fafc);
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--slate-400, #94a3b8);
+}
+
+.live-indicator[data-state="live"] {
+  border-color: rgba(22, 163, 74, 0.35);
+  background: rgba(22, 163, 74, 0.08);
+  color: #15803d;
+}
+
+.live-indicator[data-state="live"] .live-dot {
+  background: #16a34a;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.18);
+  animation: live-pulse 2s ease-in-out infinite;
+}
+
+.live-indicator[data-state="connecting"] .live-dot,
+.live-indicator[data-state="reconnecting"] .live-dot {
+  background: #d97706;
+}
+
+.live-indicator[data-state="polling"] .live-dot {
+  background: #64748b;
+}
+
+.live-indicator[data-state="offline"] {
+  border-color: rgba(220, 38, 38, 0.3);
+  background: rgba(220, 38, 38, 0.07);
+  color: #b91c1c;
+}
+
+.live-indicator[data-state="offline"] .live-dot {
+  background: #dc2626;
+}
+
+@keyframes live-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.18);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(22, 163, 74, 0.05);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-indicator[data-state="live"] .live-dot {
+    animation: none;
+  }
+}
+
 .topbar-divider {
   width: 1px;
   height: 24px;

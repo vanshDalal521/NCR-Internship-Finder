@@ -682,3 +682,13 @@ $(async () => {
   await Promise.all([loadQuota(), loadHistory()]);
   refreshIcons();
 });
+
+let realtimeTimer = null;
+window.addEventListener('ncr:jobs-changed', () => {
+  if (!state.config || state.running || realtimeTimer) return;
+  realtimeTimer = window.setTimeout(() => {
+    realtimeTimer = null;
+    loadQuota();
+    loadHistory();
+  }, 1500);
+});

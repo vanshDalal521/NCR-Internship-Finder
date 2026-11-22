@@ -146,6 +146,26 @@
               <section class="card settings-card">
                 <div class="card-header">
                   <div class="settings-header-copy">
+                    <div class="settings-title"><i data-lucide="workflow"></i> Live automation</div>
+                    <div class="settings-caption">Scheduled discovery, link screening, and the 24-hour freshness gate.</div>
+                  </div>
+                  <button class="btn btn-sm btn-secondary" type="button" id="automation-run-now">
+                    <i data-lucide="play"></i> Run now
+                  </button>
+                </div>
+                <div class="card-body">
+                  <div class="status-grid" id="automation-status-grid">
+                    <div class="loading-state"><span class="spinner"></span><span>Reading automation status…</span></div>
+                  </div>
+                  <div class="settings-note mt-12" id="automation-note">
+                    Automation state will appear here after the API responds.
+                  </div>
+                </div>
+              </section>
+
+              <section class="card settings-card">
+                <div class="card-header">
+                  <div class="settings-header-copy">
                     <div class="settings-title"><i data-lucide="server"></i> System status</div>
                     <div class="settings-caption" id="system-status-caption">Loading runtime details…</div>
                   </div>

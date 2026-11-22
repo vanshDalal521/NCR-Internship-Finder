@@ -1,4 +1,5 @@
 import { CATEGORIES, CATEGORY_TARGETS, CITIES, LOCATIONS, SOURCE_LABELS } from '../config/constants.js';
+import { isPortalVisibleJob } from '../utils/freshness.js';
 import { normalizeCompanyName } from '../utils/text.js';
 
 const CATEGORY_ORDER = new Map(CATEGORIES.map((category, index) => [category, index]));
@@ -77,9 +78,9 @@ function recentJob(job) {
 
 export function buildDashboard(jobs, { scope = 'all' } = {}) {
   const verifiedJobs = jobs.filter(isVerifiedActive);
-  const sortedRecent = [...jobs].sort(
-    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-  );
+  const sortedRecent = jobs
+    .filter((job) => isPortalVisibleJob(job))
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   const pendingQueue = [...jobs]
     .filter((job) => ['pending', 'needs_review'].includes(job.verification_status))
     .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
@@ -200,8 +201,9 @@ export function buildReportSummary(jobs) {
 }
 
 export function buildCompanyDirectory(companies, jobs) {
+  const displayJobs = jobs.filter((job) => isPortalVisibleJob(job));
   const jobsByCompany = new Map();
-  for (const job of jobs) {
+  for (const job of displayJobs) {
     const key = job.company_id || `name:${normalizeCompanyName(job.company_name || '')}`;
     if (!key) continue;
     if (!jobsByCompany.has(key)) jobsByCompany.set(key, []);

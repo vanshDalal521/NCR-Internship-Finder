@@ -15,6 +15,7 @@ import {
   relativeTime,
   safeExternalLink,
   safeUrl,
+  screeningBadge,
   setButtonLoading,
   sourceBadge,
   statusBadge,
@@ -337,6 +338,7 @@ export function openJobDrawer(jobId, { config = getConfig(), onChanged = null } 
     drawer.setSubtitle(`
       <span class="flex flex-center gap-6">${icon('building-2')} ${escapeHtml(job.company_name)}</span>
       ${statusBadge(job.verification_status)}
+      ${screeningBadge(job.screening_status)}
       ${categoryTag(job.category, 'tag')}
     `);
     drawer.body.innerHTML = bodyMarkup(job, config);

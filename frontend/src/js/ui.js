@@ -370,6 +370,20 @@ export function statusBadge(status, { dot = true } = {}) {
   return `<span class="badge ${meta.className}">${dot ? '<span class="badge-dot"></span>' : ''}${escapeHtml(meta.label)}</span>`;
 }
 
+const SCREENING_META = {
+  passed: { label: 'Link verified', className: 'badge-verified', iconName: 'link' },
+  review: { label: 'Link review', className: 'badge-review', iconName: 'triangle-alert' },
+  failed: { label: 'Link failed', className: 'badge-expired', iconName: 'link-2-off' },
+  pending: { label: 'Link pending', className: 'badge-pending', iconName: 'clock' },
+};
+
+export function screeningBadge(status, { withIcon = true } = {}) {
+  const meta = SCREENING_META[status] || SCREENING_META.pending;
+  return `<span class="badge ${meta.className}" title="Automated application link screening">${
+    withIcon ? icon(meta.iconName) : ''
+  }${escapeHtml(meta.label)}</span>`;
+}
+
 export function sourceBadge(source, labels = SOURCE_LABELS) {
   const key = String(source || 'manual');
   return `<span class="badge badge-source ${escapeHtml(key)}"><span class="source-mark">${

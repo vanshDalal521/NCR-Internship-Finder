@@ -24,6 +24,7 @@ function emptySummary(source) {
     failed: 0,
     reasons: {},
     newJobs: [],
+    newJobIds: [],
     duplicateMatches: [],
     errors: [],
   };
@@ -92,6 +93,7 @@ export async function ingestNormalizedResults(store, results, { source } = {}) {
       });
 
       summary.added += 1;
+      summary.newJobIds.push(created.id);
       if (summary.newJobs.length < 12) {
         summary.newJobs.push({
           id: created.id,

@@ -2,6 +2,7 @@ import app from './app.js';
 import { env } from './config/env.js';
 import { logger } from './utils/logger.js';
 import { getStore } from './services/store/index.js';
+import { startScheduler, stopScheduler } from './services/scheduler.service.js';
 
 async function start() {
   const store = await getStore();
@@ -20,10 +21,12 @@ async function start() {
       logger.info(`Frontend dev server: ${env.FRONTEND_ORIGIN}`);
       logger.info(`API health: http://localhost:${env.PORT}/api/health`);
     }
+    startScheduler();
   });
 
   async function shutdown(signal) {
     logger.info(`Received ${signal}. Closing the server gracefully.`);
+    stopScheduler();
     server.close(() => process.exit(0));
     setTimeout(() => process.exit(1), 10_000).unref();
   }

@@ -11,6 +11,12 @@ const emptyToUndefined = (value) => {
   return value;
 };
 
+const booleanFlag = (defaultValue = 'false') =>
+  z
+    .enum(['true', 'false'])
+    .default(defaultValue)
+    .transform((value) => value === 'true');
+
 const optionalString = z.preprocess(emptyToUndefined, z.string().trim().optional());
 const optionalUrl = z.preprocess(emptyToUndefined, z.string().url().optional());
 
@@ -36,6 +42,18 @@ const schema = z.object({
 
   DISCOVERY_DAILY_LIMIT: z.coerce.number().int().min(1).max(1000).default(40),
   DISCOVERY_MAX_AGE_DAYS: z.coerce.number().int().min(1).max(365).default(45),
+  JOB_FRESHNESS_HOURS: z.coerce.number().int().min(1).max(168).default(24),
+
+  AUTO_SCREEN_ENABLED: booleanFlag('true'),
+  AUTO_ANALYSIS_LIMIT: z.coerce.number().int().min(0).max(20).default(6),
+  AUTO_VERIFY_SCREENED: booleanFlag(),
+  AUTO_VERIFY_MIN_SCORE: z.coerce.number().int().min(0).max(100).default(60),
+
+  AUTO_DISCOVERY_ENABLED: booleanFlag(),
+  AUTO_DISCOVERY_INTERVAL_MINUTES: z.coerce.number().int().min(15).max(1440).default(240),
+  AUTO_DISCOVERY_START_DELAY_SECONDS: z.coerce.number().int().min(0).max(900).default(30),
+  AUTO_DISCOVERY_SEARCHES_PER_RUN: z.coerce.number().int().min(1).max(3).default(1),
+  AUTO_DISCOVERY_MONTHLY_BUDGET: z.coerce.number().int().min(0).max(2000).default(180),
 
   GEMINI_API_KEY: optionalString,
   GEMINI_MODEL: z.string().trim().default('gemini-2.5-flash'),

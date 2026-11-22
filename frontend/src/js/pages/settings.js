@@ -188,6 +188,83 @@ function statusItem(label, value, className = '') {
   return `<div class="status-item"><span>${escapeHtml(label)}</span><strong class="${className}">${value}</strong></div>`;
 }
 
+function automationFlag(enabled, on = 'Enabled', off = 'Disabled') {
+  return `<span class="config-badge ${enabled ? 'ready' : 'missing'}">${enabled ? on : off}</span>`;
+}
+
+function renderAutomation() {
+  const element = document.getElementById('automation-status-grid');
+  if (!element) return;
+  const automation = state.status?.automation || {};
+  const screening = state.status?.screening || {};
+  const realtime = state.status?.realtime || {};
+  const last = automation.lastSummary || null;
+  const lastSearches = Array.isArray(last?.searches) ? last.searches : [];
+  const lastAdded = lastSearches.reduce((total, entry) => total + Number(entry.added || 0), 0);
+  const lastChecked = Number(last?.screeningBackfill?.checked || 0);
+  const lastAnalyzed = Number(last?.analysisBackfill?.analyzed || 0);
+  const next = automation.nextCombination;
+  const budgetUsed = Number(automation.monthlyUsed || 0);
+  const budgetTotal = Number(automation.monthlyBudget || 0);
+
+  element.innerHTML = [
+    statusItem('Scheduled discovery', automationFlag(Boolean(automation.enabled))),
+    statusItem(
+      'Screening & AI analysis',
+      automationFlag(Boolean(screening.enabled), `On · ${formatNumber(screening.analysisLimit || 0)} per batch`),
+    ),
+    statusItem(
+      'Auto-verify screened',
+      screening.autoVerify
+        ? `On · score ≥ ${formatNumber(screening.autoVerifyMinScore || 0)}`
+        : 'Off · committee decides',
+    ),
+    statusItem('Freshness window', `${formatNumber(state.status?.freshnessHours || 24)} hours`),
+    statusItem(
+      'Monthly search budget',
+      `${formatNumber(budgetUsed)} / ${formatNumber(budgetTotal)} used`,
+    ),
+    statusItem('Live connections', formatNumber(realtime.clients || 0)),
+    statusItem(
+      'Next scheduled run',
+      automation.nextRunAt ? escapeHtml(relativeTime(automation.nextRunAt)) : 'Not scheduled',
+    ),
+    statusItem(
+      'Last automation run',
+      automation.lastRunAt
+        ? `${escapeHtml(relativeTime(automation.lastRunAt))} · ${escapeHtml(automation.lastTrigger || 'manual')}`
+        : 'Not run yet',
+    ),
+  ].join('');
+
+  const parts = [];
+  if (next) {
+    parts.push(
+      `Next rotation: <strong>${escapeHtml(next.keyword)}</strong> in ${escapeHtml(next.city)}.`,
+    );
+  }
+  if (last) {
+    parts.push(
+      `${formatNumber(lastAdded)} new record${lastAdded === 1 ? '' : 's'} from ${formatNumber(
+        lastSearches.length,
+      )} search${lastSearches.length === 1 ? '' : 'es'}, ${formatNumber(lastChecked)} screened, ${formatNumber(
+        lastAnalyzed,
+      )} analyzed, ${formatNumber(last.expired || 0)} expired.`,
+    );
+  }
+  if (automation.lastError) {
+    parts.push(`<span style="color:#b91c1c">${escapeHtml(automation.lastError)}</span>`);
+  }
+  if (!automation.enabled) {
+    parts.push(
+      'Set <code>AUTO_DISCOVERY_ENABLED=true</code> in <code>backend/.env</code> and restart the API to schedule live searches.',
+    );
+  }
+  document.getElementById('automation-note').innerHTML =
+    parts.join(' ') || 'Automation is ready. Run it now or enable the scheduler.';
+  refreshIcons();
+}
+
 function renderSystemStatus() {
   const status = state.status;
   if (!status) return;
@@ -258,6 +335,7 @@ async function loadStatus({ silent = false } = {}) {
     state.status = await http.get('/system/status', null, { timeout: 20_000 });
     state.statusLoadedAt = new Date();
     renderIntegrations();
+    renderAutomation();
     renderSystemStatus();
   } catch (error) {
     if (!silent) {
@@ -321,6 +399,30 @@ async function analyzePending(button) {
     await loadStatus({ silent: true });
   } catch (error) {
     toast({ type: 'error', title: 'Analysis batch failed', message: describeError(error), timeout: 7000 });
+  } finally {
+    restore();
+  }
+}
+
+async function runAutomation(button) {
+  const restore = setButtonLoading(button, 'Running automation…');
+  try {
+    const data = await http.post('/system/automation/run', null, { timeout: 180_000 });
+    const searchCount = Array.isArray(data?.searches) ? data.searches.length : 0;
+    const added = (data?.searches || []).reduce((total, entry) => total + Number(entry.added || 0), 0);
+    toast({
+      type: 'success',
+      title: data?.skipped ? 'Automation checked' : 'Automation complete',
+      message:
+        data?.skipped || `${added} new record${added === 1 ? '' : 's'} from ${searchCount} search${
+          searchCount === 1 ? '' : 'es'
+        }; ${Number(data?.screeningBackfill?.checked || 0)} listings screened.`,
+      timeout: 8000,
+    });
+    await loadStatus({ silent: true });
+  } catch (error) {
+    toast({ type: 'error', title: 'Automation failed', message: describeError(error), timeout: 8000 });
+    await loadStatus({ silent: true });
   } finally {
     restore();
   }
@@ -412,6 +514,19 @@ $(async () => {
 
   $('#analyze-pending').on('click', function analyze() {
     analyzePending(this);
+  });
+
+  $('#automation-run-now').on('click', function automationNow() {
+    runAutomation(this);
+  });
+
+  let schedulerRefresh = null;
+  window.addEventListener('ncr:scheduler-changed', () => {
+    if (schedulerRefresh) return;
+    schedulerRefresh = window.setTimeout(() => {
+      schedulerRefresh = null;
+      loadStatus({ silent: true });
+    }, 1200);
   });
 
   await loadStatus({ silent: true });

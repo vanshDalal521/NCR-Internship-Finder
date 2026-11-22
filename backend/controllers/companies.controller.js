@@ -4,6 +4,7 @@ import { buildCompanyDirectory, summarizeCompany } from '../services/analytics.s
 import { ApiError } from '../utils/http-error.js';
 import { parseOrThrow } from '../utils/validation.js';
 import { CITIES } from '../config/constants.js';
+import { isPortalVisibleJob } from '../utils/freshness.js';
 
 const uuidSchema = z.string().uuid('A valid company ID is required.');
 const companyListQuerySchema = z.object({
@@ -18,7 +19,9 @@ export async function listCompanies(req, res) {
   const store = await getStore();
   const [companies, jobs] = await Promise.all([store.listCompanies(), store.listAllJobs()]);
 
-  let directory = buildCompanyDirectory(companies, jobs);
+  let directory = buildCompanyDirectory(companies, jobs).filter(
+    (company) => company.totalJobs > 0,
+  );
   if (query.city) directory = directory.filter((company) => company.city === query.city);
   if (query.search) {
     const search = query.search.toLowerCase();
@@ -63,8 +66,9 @@ export async function listCompanies(req, res) {
 export async function getCompany(req, res) {
   const id = parseOrThrow(uuidSchema, req.params.id);
   const store = await getStore();
-  const [company, jobs] = await Promise.all([store.getCompanyById(id), store.listJobsByCompany(id)]);
+  const [company, allJobs] = await Promise.all([store.getCompanyById(id), store.listJobsByCompany(id)]);
   if (!company) throw ApiError.notFound('That company record was not found.');
+  const jobs = allJobs.filter((job) => isPortalVisibleJob(job));
 
   res.json({
     success: true,

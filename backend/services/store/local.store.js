@@ -2,7 +2,9 @@ import { randomUUID } from 'node:crypto';
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { ApiError } from '../../utils/http-error.js';
+import { env } from '../../config/env.js';
 import { daysAgo } from '../../utils/dates.js';
+import { isPortalVisibleJob } from '../../utils/freshness.js';
 import { companyPayloadFromJob } from './company-mapper.js';
 import {
   COMPANY_FIELDS,
@@ -154,6 +156,12 @@ export class LocalStore {
     if (filters.source && job.source !== filters.source) return false;
     if (filters.workMode && job.work_mode !== filters.workMode) return false;
     if (filters.activeOnly && job.is_active !== true) return false;
+    if (filters.screenedOnly && !isPortalVisibleJob(job)) return false;
+    if (filters.freshOnly && job.verification_status !== 'verified_active') {
+      const reference = job.posted_at || job.created_at;
+      const cutoff = Date.now() - env.JOB_FRESHNESS_HOURS * 60 * 60 * 1000;
+      if (!reference || new Date(reference).getTime() < cutoff) return false;
+    }
     if (filters.savedOnly && !savedIds.has(job.id)) return false;
     if (filters.minStipend) {
       const pay = job.stipend_monthly_max ?? job.stipend_monthly_min ?? job.stipend_min ?? 0;
@@ -261,6 +269,7 @@ export class LocalStore {
       id: record.id || randomUUID(),
       required_skills: Array.isArray(record.required_skills) ? record.required_skills : [],
       verification_status: record.verification_status || 'pending',
+      screening_status: record.screening_status || 'pending',
       is_active: record.is_active !== false,
       created_at: record.created_at || now,
       updated_at: now,
@@ -451,8 +460,11 @@ export class LocalStore {
     return clone(record);
   }
 
-  async countSearchesSince(isoDate) {
-    return this.db.search_history.filter((entry) => String(entry.created_at) >= isoDate).length;
+  async countSearchesSince(isoDate, { searchedBy = null } = {}) {
+    return this.db.search_history.filter(
+      (entry) =>
+        String(entry.created_at) >= isoDate && (!searchedBy || entry.searched_by === searchedBy),
+    ).length;
   }
 
   async listSearchHistory(limit = 10) {

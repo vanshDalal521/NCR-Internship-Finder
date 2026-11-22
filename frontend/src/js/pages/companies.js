@@ -231,15 +231,17 @@ function renderError(error) {
   refreshIcons();
 }
 
-async function loadCompanies({ scroll = false } = {}) {
+async function loadCompanies({ scroll = false, silent = false } = {}) {
   if (state.loading) return;
   state.loading = true;
   const requestId = ++state.requestId;
 
-  $('#companies-body').html(
-    `<tr><td colspan="7">${loadingState('Loading companies…')}</td></tr>`,
-  );
-  $('#companies-pagination').html('');
+  if (!silent) {
+    $('#companies-body').html(
+      `<tr><td colspan="7">${loadingState('Loading companies…')}</td></tr>`,
+    );
+    $('#companies-pagination').html('');
+  }
 
   try {
     const data = await http.get('/companies', currentFilters(), { timeout: 25_000 });
@@ -521,3 +523,9 @@ $(async () => {
     openCompany(requestedCompany, item || {});
   }
 });
+
+const refreshForRealtime = debounce(() => {
+  if (state.config) loadCompanies({ silent: true });
+}, 1500);
+
+window.addEventListener('ncr:jobs-changed', refreshForRealtime);

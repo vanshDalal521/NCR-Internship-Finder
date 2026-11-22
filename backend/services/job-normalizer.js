@@ -51,7 +51,7 @@ function isStale(postedAt) {
   if (!postedAt) return false;
   const date = new Date(postedAt);
   if (Number.isNaN(date.getTime())) return false;
-  const cutoff = Date.now() - env.DISCOVERY_MAX_AGE_DAYS * 24 * 60 * 60 * 1000;
+  const cutoff = Date.now() - env.JOB_FRESHNESS_HOURS * 60 * 60 * 1000;
   return date.getTime() < cutoff;
 }
 

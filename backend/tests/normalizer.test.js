@@ -3,6 +3,7 @@ import { normalizeAdzunaJob, normalizeJSearchJob, normalizeManualJob } from '../
 
 const daysFromNow = (days) => new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
 const daysAgo = (days) => new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+const hoursAgo = (hours) => new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
 
 function jsearchJob(overrides = {}) {
   return {
@@ -19,7 +20,7 @@ function jsearchJob(overrides = {}) {
     job_is_remote: false,
     job_apply_link: 'https://northstar.example/careers/frontend-intern',
     job_google_link: 'https://northstar.example/jobs/frontend-intern',
-    job_posted_at_datetime_utc: daysAgo(2),
+    job_posted_at_datetime_utc: hoursAgo(2),
     job_offer_expiration_datetime_utc: daysFromNow(20),
     job_description:
       '<p>Join our team to build <strong>React</strong> interfaces with JavaScript and TypeScript.</p><p>Stipend: ₹25,000 per month.</p>',
@@ -82,7 +83,7 @@ describe('normalizeJSearchJob', () => {
       jsearchJob({ job_offer_expiration_datetime_utc: daysAgo(1) }),
     );
     const stale = normalizeJSearchJob(
-      jsearchJob({ job_posted_at_datetime_utc: daysAgo(90) }),
+      jsearchJob({ job_posted_at_datetime_utc: daysAgo(2) }),
     );
 
     expect(expired).toMatchObject({ ok: false, reason: 'expired' });
@@ -115,7 +116,7 @@ describe('normalizeAdzunaJob', () => {
       company: { display_name: 'Meridian Analytics' },
       location: { display_name: 'Noida, Uttar Pradesh', area: ['Noida'] },
       category: { label: 'Graduate Jobs' },
-      created: daysAgo(3),
+      created: hoursAgo(3),
       redirect_url: 'https://meridian.example/jobs/data-analyst-intern',
       salary_min: 18000,
       salary_max: 22000,

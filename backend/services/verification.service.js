@@ -84,7 +84,10 @@ async function resolveAddress(url) {
     }
   }
 
-  return { address: addresses[0].address, family: addresses[0].family };
+  // Prefer IPv4: some container hosts and home networks advertise IPv6 routes
+  // that cannot actually reach the public internet.
+  const preferred = addresses.find((entry) => entry.family === 4) || addresses[0];
+  return { address: preferred.address, family: preferred.family };
 }
 
 function requestOnce(url, { address, family }, timeoutMs) {
@@ -117,7 +120,13 @@ function requestOnce(url, { address, family }, timeoutMs) {
           Range: 'bytes=0-0',
           Connection: 'close',
         },
-        lookup: (_hostname, _options, callback) => callback(null, address, family),
+        lookup: (_hostname, options, callback) => {
+          // Node 20+ enables Happy Eyeballs (autoSelectFamily), which asks the
+          // custom lookup for every address. Returning a single address keeps
+          // the request bound to the SSRF-vetted IP.
+          if (options?.all) callback(null, [{ address, family }]);
+          else callback(null, address, family);
+        },
         servername: url.protocol === 'https:' ? url.hostname.replace(/^\[|\]$/g, '') : undefined,
         timeout: timeoutMs,
       },

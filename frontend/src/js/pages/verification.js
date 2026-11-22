@@ -9,6 +9,7 @@ import {
   confirmDialog,
   copyText,
   deadlineInfo,
+  debounce,
   escapeHtml,
   formatDate,
   formatDateTime,
@@ -17,6 +18,7 @@ import {
   refreshIcons,
   relativeTime,
   safeUrl,
+  screeningBadge,
   setButtonLoading,
   sourceBadge,
   statusBadge,
@@ -190,19 +192,41 @@ function aiSection(job) {
 }
 
 function linkCheckMarkup(job) {
-  const result = state.linkChecks.get(job.id);
+  const local = state.linkChecks.get(job.id);
+  const result = local || (job.link_checked_at
+    ? {
+        outcome:
+          job.screening_status === 'passed'
+            ? 'reachable'
+            : job.screening_status === 'failed'
+              ? 'failed'
+              : 'review',
+        message: job.screening_message || 'Automated link screening recorded',
+        httpStatus: job.link_http_status,
+        checkedAt: job.link_checked_at,
+        persisted: true,
+      }
+    : null);
   if (!result) {
     return `<div class="link-check-result" data-link-result>${icon(
-      'info',
-    )} No link check has run for this review yet.</div>`;
+      'clock',
+    )} Automated screening has not completed for this record yet.</div>`;
   }
-  const tone = result.outcome === 'pass' ? 'success' : result.outcome === 'review' ? 'warning' : 'error';
-  const iconName =
-    result.outcome === 'pass' ? 'circle-check-big' : result.outcome === 'review' ? 'triangle-alert' : 'circle-x';
+  const success = ['reachable', 'pass', 'passed'].includes(result.outcome);
+  const review = [
+    'blocked',
+    'rate_limited',
+    'server_error',
+    'unexpected_response',
+    'review',
+  ].includes(result.outcome);
+  const tone = success ? 'success' : review ? 'warning' : 'error';
+  const iconName = success ? 'circle-check-big' : review ? 'triangle-alert' : 'circle-x';
   const details = [
     result.httpStatus ? `HTTP ${result.httpStatus}` : '',
     result.finalUrl && result.finalUrl !== job.application_url ? `Redirects to ${result.finalUrl}` : '',
-    formatDateTime(result.checkedAt),
+    result.checkedAt ? formatDateTime(result.checkedAt) : '',
+    result.persisted ? 'automated screening' : '',
   ]
     .filter(Boolean)
     .join(' · ');
@@ -233,6 +257,7 @@ function reviewMarkup(job) {
           <div class="review-company">
             ${icon('building-2')} ${escapeHtml(job.company_name)}
             ${statusBadge(job.verification_status)}
+            ${screeningBadge(job.screening_status)}
             ${categoryTag(job.category, 'tag')}
             ${sourceBadge(job.source, state.config.sourceLabels)}
           </div>
@@ -774,3 +799,10 @@ $(async () => {
   await Promise.all([loadQueue({ autoSelect: false }), loadAudit()]);
   if (!state.selected && state.items.length) selectJob(state.items[0].id);
 });
+
+const refreshForRealtime = debounce(async () => {
+  if (!state.config) return;
+  await Promise.all([loadQueue({ autoSelect: false }), loadAudit()]);
+}, 1800);
+
+window.addEventListener('ncr:jobs-changed', refreshForRealtime);

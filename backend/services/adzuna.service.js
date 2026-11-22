@@ -42,7 +42,7 @@ export async function searchAdzuna({ query, location, pages = 1 }) {
             what: query,
             where: `${location}, India`,
             results_per_page: 50,
-            max_days_old: 30,
+            max_days_old: 1,
             sort_by: 'date',
             'content-type': 'application/json',
           },

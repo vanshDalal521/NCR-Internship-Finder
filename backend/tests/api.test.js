@@ -246,9 +246,9 @@ describe('shortlist, dashboard, companies and reports', () => {
     );
   });
 
-  it('lists companies and resolves a company profile with linked opportunities', async () => {
+  it('lists only companies with portal-visible opportunities and resolves a profile', async () => {
     const list = await api.get('/api/companies').expect(200);
-    expect(list.body.data.items).toHaveLength(4);
+    expect(list.body.data.items).toHaveLength(1);
     const northstar = list.body.data.items.find((company) => company.name === 'Northstar Labs');
     expect(northstar).toMatchObject({
       totalJobs: 1,
@@ -265,9 +265,12 @@ describe('shortlist, dashboard, companies and reports', () => {
       verification_status: 'verified_active',
     });
 
-    const filtered = await api.get('/api/companies?search=Indus').expect(200);
+    const filtered = await api.get('/api/companies?search=Northstar').expect(200);
     expect(filtered.body.data.items).toHaveLength(1);
-    expect(filtered.body.data.items[0].name).toBe('Indus AI');
+    expect(filtered.body.data.items[0].name).toBe('Northstar Labs');
+
+    const hidden = await api.get('/api/companies?search=Indus').expect(200);
+    expect(hidden.body.data.items).toHaveLength(0);
   });
 
   it('produces a verified-only report summary and records exported reports', async () => {

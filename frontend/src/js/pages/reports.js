@@ -8,6 +8,7 @@ import { getReviewerName, orderedCategories, orderedLocations } from '../prefere
 import { boot } from '../shell.js';
 import {
   categoryTag,
+  debounce,
   emptyState,
   escapeHtml,
   formatDate,
@@ -731,3 +732,19 @@ $(async () => {
 
   await Promise.all([loadSummary(), loadHistory()]);
 });
+
+const refreshForRealtime = debounce(async () => {
+  if (!state.config) return;
+  state.directoryJobs = null;
+  await Promise.all([loadSummary(), loadHistory()]);
+  if (state.reportType === 'full_directory') {
+    try {
+      await ensureDirectory();
+    } catch {
+      // The preview surfaces its own failure state.
+    }
+  }
+  renderPreview();
+}, 2500);
+
+window.addEventListener('ncr:jobs-changed', refreshForRealtime);

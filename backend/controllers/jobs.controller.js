@@ -2,6 +2,8 @@ import { z } from 'zod';
 import { analyzeJobWithGemini, isGeminiConfigured } from '../services/gemini.service.js';
 import { findExistingJob } from '../services/deduplication.service.js';
 import { normalizeManualJob } from '../services/job-normalizer.js';
+import { broadcast } from '../services/realtime.service.js';
+import { processJobBatch } from '../services/screening.service.js';
 import { getStore } from '../services/store/index.js';
 import { ApiError } from '../utils/http-error.js';
 import {
@@ -68,11 +70,16 @@ export async function createManualJob(req, res) {
   });
   const job = await store.getJobById(created.id);
 
+  broadcast('jobs', { reason: 'manual-created', jobId: created.id });
+  processJobBatch(store, [created.id]).catch(() => {
+    // Screening runs in the background; the opportunity is already in the queue.
+  });
+
   res.status(201).json({
     success: true,
     data: {
       job,
-      message: 'Opportunity added to the verification queue.',
+      message: 'Opportunity added to the verification queue. Link screening is running now.',
     },
   });
 }
@@ -92,6 +99,7 @@ export async function analyzeJob(req, res) {
   const analysis = await analyzeJobWithGemini(job);
   const saved = await store.upsertAnalysis(job.id, analysis);
   const updated = await store.getJobById(job.id);
+  broadcast('jobs', { reason: 'analysis', jobId: job.id });
 
   res.json({
     success: true,
@@ -135,12 +143,15 @@ export async function analyzePending(req, res) {
     }
   }
 
+  const analyzed = results.filter((result) => result.status === 'analyzed').length;
+  if (analyzed) broadcast('jobs', { reason: 'bulk-analysis', analyzed });
+
   res.json({
     success: true,
     data: {
       requested: input.limit,
       processed: results.length,
-      analyzed: results.filter((result) => result.status === 'analyzed').length,
+      analyzed,
       results,
     },
   });

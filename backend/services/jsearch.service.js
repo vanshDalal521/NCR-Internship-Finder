@@ -47,8 +47,7 @@ export async function searchJSearch({ query, location, pages = 1 }) {
         query: `${query} in ${location}, India`,
         num_pages: Math.min(Math.max(pages, 1), 2),
         country: env.JSEARCH_COUNTRY,
-        date_posted: 'month',
-        employment_types: 'INTERN',
+        date_posted: 'week',
       },
     });
 

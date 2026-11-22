@@ -66,6 +66,7 @@ function job(overrides = {}) {
     source: 'manual',
     source_job_id: 'source-1',
     verification_status: 'verified_active',
+    screening_status: 'passed',
     is_active: true,
     saved: false,
     created_at: now,
@@ -158,6 +159,21 @@ describe('buildDashboard', () => {
       dashboard.distributions.verified.categories.some((row) => row.category === 'Data Analytics'),
     ).toBe(false);
   });
+
+  it('does not surface stale unverified records in the recent feed', () => {
+    const stale = job({
+      id: 'job-stale',
+      company_name: 'Old Co',
+      verification_status: 'pending',
+      screening_status: 'passed',
+      created_at: new Date(Date.now() - 30 * 60 * 60 * 1000).toISOString(),
+      posted_at: new Date(Date.now() - 30 * 60 * 60 * 1000).toISOString(),
+    });
+    const dashboard = buildDashboard([...jobs, stale]);
+
+    expect(dashboard.recent.map((item) => item.id)).not.toContain('job-stale');
+    expect(dashboard.reviewQueue.map((item) => item.id)).toContain('job-stale');
+  });
 });
 
 describe('buildReportSummary', () => {
@@ -207,9 +223,9 @@ describe('buildCompanyDirectory', () => {
     expect(directory).toHaveLength(4);
     const northstar = directory.find((company) => company.name === 'Northstar Labs');
     expect(northstar).toMatchObject({
-      totalJobs: 2,
+      totalJobs: 1,
       verifiedActive: 1,
-      expired: 1,
+      expired: 0,
       shortlisted: 1,
     });
     expect(northstar.locations).toEqual(['Gurugram']);

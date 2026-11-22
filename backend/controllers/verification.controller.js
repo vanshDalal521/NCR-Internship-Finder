@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { getStore } from '../services/store/index.js';
 import { checkApplicationLink } from '../services/verification.service.js';
+import { broadcast } from '../services/realtime.service.js';
 import { ApiError } from '../utils/http-error.js';
 import { parseOrThrow, verifyJobSchema } from '../utils/validation.js';
 
@@ -56,6 +57,19 @@ export async function checkLink(req, res) {
   if (!job) throw ApiError.notFound('That opportunity was not found.');
 
   const result = await checkApplicationLink(job.application_url);
+  const passed = result.outcome === 'reachable';
+  const failed = ['not_found', 'unreachable', 'redirect_issue', 'too_many_redirects'].includes(
+    result.outcome,
+  );
+  await store.updateJob(id, {
+    screening_status: passed ? 'passed' : failed ? 'failed' : 'review',
+    screening_outcome: result.outcome,
+    screening_message: result.message,
+    link_checked_at: result.checkedAt,
+    link_http_status: result.httpStatus,
+  });
+  broadcast('jobs', { reason: 'link-check', jobId: id, outcome: result.outcome });
+
   res.json({
     success: true,
     data: {
@@ -107,6 +121,12 @@ export async function verifyJob(req, res) {
   }
 
   const refreshed = await store.getJobById(id);
+  broadcast('jobs', {
+    reason: 'verification',
+    jobId: id,
+    status: input.status,
+    previousStatus: job.verification_status,
+  });
   res.json({
     success: true,
     data: {

@@ -16,6 +16,7 @@ import {
   loadingState,
   refreshIcons,
   renderPagination,
+  screeningBadge,
   setButtonLoading,
   sourceBadge,
   statusBadge,
@@ -90,6 +91,7 @@ function readFilters() {
     if (value) filters[key] = value;
   }
   filters.savedOnly = Boolean(document.getElementById('filter-saved')?.checked);
+  filters.screenedOnly = Boolean(document.getElementById('filter-screened')?.checked);
   if (!filters.sort) filters.sort = 'created_at';
   if (!filters.order) filters.order = 'desc';
   return filters;
@@ -98,6 +100,7 @@ function readFilters() {
 function queryParams() {
   const params = { ...state.filters, page: state.page, limit: state.limit };
   if (!params.savedOnly) delete params.savedOnly;
+  if (!params.screenedOnly) delete params.screenedOnly;
   return params;
 }
 
@@ -110,6 +113,8 @@ function populateForm(filters) {
   }
   const saved = document.getElementById('filter-saved');
   if (saved) saved.checked = Boolean(filters.savedOnly);
+  const screened = document.getElementById('filter-screened');
+  if (screened) screened.checked = Boolean(filters.screenedOnly);
 }
 
 function readUrlState() {
@@ -120,6 +125,7 @@ function readUrlState() {
     if (value) filters[key] = value;
   }
   if (params.get('saved') === 'true') filters.savedOnly = true;
+  if (params.get('screened') === 'true') filters.screenedOnly = true;
   const page = Number(params.get('page'));
   if (Number.isInteger(page) && page > 0) state.page = page;
   state.filters = filters;
@@ -131,6 +137,8 @@ function syncUrl() {
   for (const [key, value] of Object.entries(state.filters)) {
     if (key === 'savedOnly') {
       if (value) params.set('saved', 'true');
+    } else if (key === 'screenedOnly') {
+      if (value) params.set('screened', 'true');
     } else if (value && !((key === 'sort' && value === 'created_at') || (key === 'order' && value === 'desc'))) {
       params.set(key, value);
     }
@@ -155,6 +163,7 @@ function filterChips() {
   if (state.filters.workMode) add('workMode', 'Work mode', state.filters.workMode);
   if (state.filters.minStipend) add('minStipend', 'Min stipend', `₹${formatNumber(state.filters.minStipend)}`);
   if (state.filters.savedOnly) add('savedOnly', 'Shortlist', 'Saved only');
+  if (state.filters.screenedOnly) add('screenedOnly', 'Screening', 'Link verified only');
   if (state.filters.sort && state.filters.sort !== 'created_at')
     add('sort', 'Sort', SORT_LABELS[state.filters.sort] || state.filters.sort);
   if (state.filters.order === 'asc') add('order', 'Order', 'Ascending');
@@ -253,7 +262,10 @@ function rowMarkup(job) {
         <span class="stipend-cell ${hasStipend ? '' : 'none'}">${escapeHtml(stipend)}</span>
       </td>
       <td>${sourceBadge(job.source, state.config.sourceLabels)}</td>
-      <td>${statusBadge(job.verification_status)}</td>
+      <td>
+        ${statusBadge(job.verification_status)}
+        <div class="cell-sub" style="margin-top: 4px">${screeningBadge(job.screening_status)}</div>
+      </td>
       <td>
         <span class="stipend-cell ${deadline.className ? 'deadline-urgent' : ''}">${escapeHtml(
           deadline.text,
@@ -314,15 +326,17 @@ function renderError(error) {
   refreshIcons();
 }
 
-async function loadJobs({ scroll = false } = {}) {
+async function loadJobs({ scroll = false, silent = false } = {}) {
   if (state.loading) return;
   state.loading = true;
   const requestId = ++state.requestId;
 
-  $('#jobs-body').html(
-    `<tr><td colspan="8">${loadingState('Loading opportunities…')}</td></tr>`,
-  );
-  $('#jobs-pagination').html('');
+  if (!silent) {
+    $('#jobs-body').html(
+      `<tr><td colspan="8">${loadingState('Loading opportunities…')}</td></tr>`,
+    );
+    $('#jobs-pagination').html('');
+  }
 
   try {
     const data = await http.get('/jobs', queryParams(), { timeout: 25_000 });
@@ -355,6 +369,9 @@ function clearFilter(key) {
   if (key === 'savedOnly') {
     const saved = document.getElementById('filter-saved');
     if (saved) saved.checked = false;
+  } else if (key === 'screenedOnly') {
+    const screened = document.getElementById('filter-screened');
+    if (screened) screened.checked = false;
   } else {
     const field = form.elements[key];
     if (field) field.value = key === 'sort' ? 'created_at' : key === 'order' ? 'desc' : '';
@@ -367,6 +384,7 @@ function resetFilters() {
   form.reset();
   $('#job-search').val('');
   $('#filter-saved').prop('checked', false);
+  $('#filter-screened').prop('checked', true);
   state.filters = readFilters();
   state.page = 1;
   syncUrl();
@@ -419,6 +437,7 @@ $(async () => {
 
   initFilters();
   readUrlState();
+  state.filters = readFilters();
   if (state.filters.search) $('#job-search').val(state.filters.search);
   renderFilterChips();
   syncUrl();
@@ -427,6 +446,7 @@ $(async () => {
   $('#job-search').on('input', debouncedSearch);
   $('#jobs-filter-form').on('change', 'select, input[type="number"]', () => applyFilters());
   $('#filter-saved').on('change', () => applyFilters());
+  $('#filter-screened').on('change', () => applyFilters());
 
   $('#clear-filters').on('click', resetFilters);
   $(document).on('click', '[data-reset-empty]', resetFilters);
@@ -484,3 +504,9 @@ $(async () => {
   const requestedJob = new URLSearchParams(window.location.search).get('job');
   if (requestedJob) openDetails(requestedJob);
 });
+
+const refreshForRealtime = debounce(() => {
+  if (state.config) loadJobs({ silent: true });
+}, 1500);
+
+window.addEventListener('ncr:jobs-changed', refreshForRealtime);
